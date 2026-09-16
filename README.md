@@ -47,7 +47,19 @@ It checks answer and judge outputs at batch sizes 1, 2, 4, and 8, and prints
 elapsed time, examples per second, and peak allocated VRAM. It does not write
 benchmark results. The configured answer and judge batch sizes are in
 `benchmark/baseline/config.py`; their initial values of 4 are provisional until
-the RTX 5090 probe is run. The complete benchmark remains a separate command:
+the RTX 5090 probe is run.
+
+If outputs differ, inspect the first two examples without running the full
+probe again:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.probe_batching --project-root . --count 2 --answer-token-limit 32 --diagnose
+```
+
+This reports the first changed text position, first generated token IDs,
+first-token logit differences, and whether judge scores changed.
+
+The complete benchmark remains a separate command:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.run_benchmark --project-root .
