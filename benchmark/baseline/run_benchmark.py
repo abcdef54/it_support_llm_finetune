@@ -9,13 +9,14 @@ from tqdm import tqdm
 
 from benchmark.baseline.config import (
     ANSWER_SYSTEM_PROMPT,
+    ANSWER_BATCH_SIZE,
     BASE_MODEL_ID,
     BASE_MODEL_REVISION,
-    BATCH_SIZE,
     DATASET_PATH,
     ENABLE_THINKING,
     GENERATION_MODE,
     GENERATION_TEMPERATURE,
+    JUDGE_BATCH_SIZE,
     MAX_INPUT_TOKENS,
     MAX_NEW_TOKENS,
     METRICS_PATH,
@@ -40,6 +41,7 @@ from benchmark.common.config import (
     TECHQA_SHA256,
 )
 from benchmark.common.dataset import load_techqa
+from benchmark.common.generation import batches
 from benchmark.common.judge import build_judge_messages, parse_judge_output
 from benchmark.common.metrics import aggregate_metrics, bertscore_f1, is_abstention, rouge_l_f1
 from benchmark.common.schemas import ExampleMetrics, ExampleResult, write_results
@@ -55,6 +57,8 @@ def _set_seed(seed: int) -> None:
 
 
 def run(project_root: Path, overwrite: bool = False) -> dict:
+    if ANSWER_BATCH_SIZE < 1 or JUDGE_BATCH_SIZE < 1:
+        raise ValueError("Answer and judge batch sizes must be positive")
     dataset_path = project_root / DATASET_PATH
     predictions_path = project_root / PREDICTIONS_PATH
     metrics_path = project_root / METRICS_PATH
@@ -64,26 +68,44 @@ def run(project_root: Path, overwrite: bool = False) -> dict:
     examples = load_techqa(dataset_path)
     _set_seed(RANDOM_SEED)
 
-    answer_model = QwenGenerator.load(BASE_MODEL_ID, BASE_MODEL_REVISION)
-    generated_answers = []
-    for example in tqdm(examples, desc="Generating baseline answers"):
-        messages = [
-            {"role": "system", "content": ANSWER_SYSTEM_PROMPT},
-            {"role": "user", "content": example.question},
-        ]
-        generated_answers.append(answer_model.generate(messages, MAX_NEW_TOKENS))
-    answer_model.close()
+    active_model = QwenGenerator.load(BASE_MODEL_ID, BASE_MODEL_REVISION)
+    try:
+        generated_answers = []
+        for batch in tqdm(
+            batches(examples, ANSWER_BATCH_SIZE),
+            total=(len(examples) + ANSWER_BATCH_SIZE - 1) // ANSWER_BATCH_SIZE,
+            desc="Generating baseline answers",
+        ):
+            messages = [
+                [
+                    {"role": "system", "content": ANSWER_SYSTEM_PROMPT},
+                    {"role": "user", "content": example.question},
+                ]
+                for example in batch
+            ]
+            generated_answers.extend(active_model.generate_batch(messages, MAX_NEW_TOKENS))
 
-    judge_model = QwenGenerator.load(JUDGE_MODEL_ID, JUDGE_MODEL_REVISION)
-    decisions = []
-    for example, generated_answer in tqdm(
-        zip(examples, generated_answers, strict=True), total=len(examples), desc="Judging answers"
-    ):
-        raw_decision = judge_model.generate(
-            build_judge_messages(example, generated_answer), JUDGE_MAX_NEW_TOKENS
-        )
-        decisions.append(parse_judge_output(raw_decision))
-    judge_model.close()
+        # The baseline answerer and judge share the exact pinned checkpoint.
+        if (BASE_MODEL_ID, BASE_MODEL_REVISION) != (JUDGE_MODEL_ID, JUDGE_MODEL_REVISION):
+            active_model.close()
+            active_model = QwenGenerator.load(JUDGE_MODEL_ID, JUDGE_MODEL_REVISION)
+
+        decisions = []
+        pairs = list(zip(examples, generated_answers, strict=True))
+        for batch in tqdm(
+            batches(pairs, JUDGE_BATCH_SIZE),
+            total=(len(pairs) + JUDGE_BATCH_SIZE - 1) // JUDGE_BATCH_SIZE,
+            desc="Judging answers",
+        ):
+            judge_messages = [build_judge_messages(example, answer) for example, answer in batch]
+            raw_decisions = active_model.generate_batch(judge_messages, JUDGE_MAX_NEW_TOKENS)
+            for (example, _), raw_decision in zip(batch, raw_decisions, strict=True):
+                try:
+                    decisions.append(parse_judge_output(raw_decision))
+                except ValueError as exc:
+                    raise ValueError(f"Invalid judge response for TechQA {example.id}: {exc}") from exc
+    finally:
+        active_model.close()
 
     references = [example.answer or "" for example in examples]
     semantic_scores = bertscore_f1(
@@ -125,7 +147,8 @@ def run(project_root: Path, overwrite: bool = False) -> dict:
         "model_dtype": MODEL_DTYPE,
         "max_input_tokens": MAX_INPUT_TOKENS,
         "max_new_tokens": MAX_NEW_TOKENS,
-        "batch_size": BATCH_SIZE,
+        "answer_batch_size": ANSWER_BATCH_SIZE,
+        "judge_batch_size": JUDGE_BATCH_SIZE,
         "random_seed": RANDOM_SEED,
         "thinking_enabled": ENABLE_THINKING,
         "bertscore_model": BERTSCORE_MODEL,

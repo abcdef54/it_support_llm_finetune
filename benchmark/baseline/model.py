@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from benchmark.baseline.config import ENABLE_THINKING, MAX_INPUT_TOKENS, MODEL_DTYPE
+from benchmark.common.generation import generate_batch
 
 
 @dataclass
@@ -19,6 +20,7 @@ class QwenGenerator:
             raise RuntimeError("Qwen3.5-9B benchmark generation requires a CUDA GPU")
         dtype = getattr(torch, MODEL_DTYPE)
         tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision)
+        tokenizer.padding_side = "left"  # Decoder-only batched generation must continue from real tokens.
         model = AutoModelForMultimodalLM.from_pretrained(
             model_id,
             revision=revision,
@@ -29,26 +31,17 @@ class QwenGenerator:
         return cls(tokenizer, model)
 
     def generate(self, messages: list[dict[str, str]], max_new_tokens: int) -> str:
-        import torch
+        return self.generate_batch([messages], max_new_tokens)[0]
 
-        inputs = self.tokenizer.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt",
-            truncation=True,
-            max_length=MAX_INPUT_TOKENS,
+    def generate_batch(self, batch_messages: list[list[dict[str, str]]], max_new_tokens: int) -> list[str]:
+        return generate_batch(
+            self.tokenizer,
+            self.model,
+            batch_messages,
+            max_input_tokens=MAX_INPUT_TOKENS,
+            max_new_tokens=max_new_tokens,
             enable_thinking=ENABLE_THINKING,
-        ).to(self.model.device)
-        prompt_length = inputs["input_ids"].shape[-1]
-        with torch.inference_mode():
-            output_ids = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-            )
-        return self.tokenizer.decode(output_ids[0][prompt_length:], skip_special_tokens=True).strip()
+        )
 
     def close(self) -> None:
         import gc
