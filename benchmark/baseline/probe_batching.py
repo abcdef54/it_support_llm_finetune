@@ -8,11 +8,13 @@ import time
 from pathlib import Path
 
 from benchmark.baseline.config import (
+    ANSWER_BATCH_SIZE,
     ANSWER_SYSTEM_PROMPT,
     BASE_MODEL_ID,
     BASE_MODEL_REVISION,
     DATASET_PATH,
     ENABLE_THINKING,
+    JUDGE_BATCH_SIZE,
     MAX_INPUT_TOKENS,
     MAX_NEW_TOKENS,
     RANDOM_SEED,
@@ -113,7 +115,7 @@ def _first_token_diagnostic(generator: QwenGenerator, prompts: list[list[dict[st
     return results
 
 
-def run(project_root: Path, count: int = 8, answer_token_limit: int = MAX_NEW_TOKENS, diagnose: bool = False) -> dict:
+def run(project_root: Path, count: int = 16, answer_token_limit: int = MAX_NEW_TOKENS, diagnose: bool = False) -> dict:
     import torch
 
     if not 2 <= count <= 16:
@@ -134,7 +136,14 @@ def run(project_root: Path, count: int = 8, answer_token_limit: int = MAX_NEW_TO
     ]
     _set_seed(RANDOM_SEED)
     generator = QwenGenerator.load(BASE_MODEL_ID, BASE_MODEL_REVISION)
-    report = {"device": name, "examples": count, "answer_token_limit": answer_token_limit, "batch_sizes": {}}
+    report = {
+        "device": name,
+        "examples": count,
+        "answer_token_limit": answer_token_limit,
+        "configured_answer_batch_size": ANSWER_BATCH_SIZE,
+        "configured_judge_batch_size": JUDGE_BATCH_SIZE,
+        "batch_sizes": {},
+    }
     try:
         if diagnose:
             report["first_token_diagnostic"] = _first_token_diagnostic(generator, answer_prompts)
@@ -142,11 +151,13 @@ def run(project_root: Path, count: int = 8, answer_token_limit: int = MAX_NEW_TO
         reference_judgments = None
         for size in (size for size in PROBE_BATCH_SIZES if size <= count):
             try:
+                stage = "answers"
                 answers, answer_stats = _measure(generator, answer_prompts, size, answer_token_limit)
                 if reference_answers is None:
                     reference_answers = answers
                 # Hold judge inputs fixed at the batch-1 answers so only judge batching changes.
                 judge_prompts = [build_judge_messages(example, answer) for example, answer in zip(examples, reference_answers, strict=True)]
+                stage = "judgments"
                 judgments, judge_stats = _measure(generator, judge_prompts, size, JUDGE_MAX_NEW_TOKENS)
                 if reference_judgments is None:
                     reference_judgments = judgments
@@ -160,7 +171,9 @@ def run(project_root: Path, count: int = 8, answer_token_limit: int = MAX_NEW_TO
             except RuntimeError as exc:
                 if not isinstance(exc.__cause__, torch.cuda.OutOfMemoryError):
                     raise
-                report["batch_sizes"][str(size)] = {"error": str(exc)}
+                report["batch_sizes"][str(size)] = {"error": str(exc), "error_stage": stage}
+                if stage == "judgments":
+                    report["batch_sizes"][str(size)]["answers"] = answer_stats
                 torch.cuda.empty_cache()
                 if size == 1:
                     raise RuntimeError("Batch size 1 did not fit; no equivalence baseline is available") from exc
@@ -169,16 +182,28 @@ def run(project_root: Path, count: int = 8, answer_token_limit: int = MAX_NEW_TO
     return report
 
 
+def _configured_batch_error(report: dict) -> str | None:
+    for stage, size in (("answers", report["configured_answer_batch_size"]), ("judgments", report["configured_judge_batch_size"])):
+        result = report["batch_sizes"].get(str(size))
+        if result is None:
+            return f"Configured {stage} batch size {size} was not tested; rerun with --count {size}"
+        if stage not in result:
+            return f"Configured {stage} batch size {size} could not be measured: {result.get('error', 'no result')}"
+    chosen_judges = report["batch_sizes"][str(report["configured_judge_batch_size"])]
+    if chosen_judges.get("judge_score_changes"):
+        return "Configured judge batch size changed scores or produced an invalid response"
+    return None
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check small batched Qwen inference on an RTX 5090 without running the full benchmark.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[2])
-    parser.add_argument("--count", type=int, default=8)
+    parser.add_argument("--count", type=int, default=16)
     parser.add_argument("--answer-token-limit", type=int, default=MAX_NEW_TOKENS)
     parser.add_argument("--diagnose", action="store_true", help="Compare first generated tokens and logit margins for the first two prompts")
     args = parser.parse_args()
     result = run(args.project_root.resolve(), args.count, args.answer_token_limit, args.diagnose)
     print(json.dumps(result, indent=2))
-    if any("error" in data for data in result["batch_sizes"].values()):
-        raise SystemExit("A batch ran out of memory; lower the affected batch size before the full benchmark")
-    if any(data.get("judge_score_changes") for data in result["batch_sizes"].values()):
-        raise SystemExit("Judge scores changed or a response was invalid; investigate before the full benchmark")
+    if not args.diagnose and args.answer_token_limit == MAX_NEW_TOKENS:
+        if error := _configured_batch_error(result):
+            raise SystemExit(error)

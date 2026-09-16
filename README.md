@@ -36,30 +36,22 @@ only as metadata. TechQA is never used for training, tuning, or RAG indexing.
 
 ## Baseline benchmark batching
 
-On the RTX 5090, run the small 8-example equivalence and throughput probe before
+On the RTX 5090, run the small 16-example throughput probe before
 the complete benchmark:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.probe_batching --project-root .
 ```
 
-It checks answer and judge outputs at batch sizes 1, 2, 4, and 8, and prints
+It checks answer and judge outputs at batch sizes 1, 2, 4, 8, and 16, and prints
 elapsed time, examples per second, and peak allocated VRAM. It does not write
 benchmark results. The configured answer and judge batch sizes are in
-`benchmark/baseline/config.py`; both are set to 8 based on the 5090 throughput
-probe. Batched bfloat16 greedy generation can differ from batch size 1 later in
-long outputs even when prompts and the first generated tokens match. The probe
-reports text and judge-score differences; judge score changes, invalid judge
-responses, or CUDA OOM make it fail.
-
-To also test batch size 16 on 16 examples, run:
-
-```bash
-CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.probe_batching --project-root . --count 16
-```
-
-Keep the production batch sizes at 8 until the probe confirms throughput and
-memory headroom for 16.
+`benchmark/baseline/config.py`: answers use 16, while judging uses 1. On the
+16-example 5090 probe, answer batch 16 was fastest and used 19.33 GiB peak
+allocated VRAM. Judge batches above 1 changed a score on one fixed judge
+prompt, so judging remains unbatched to preserve the measured scoring behavior.
+The probe still reports differences for every candidate size, but its final
+configuration check applies only to the selected answer and judge sizes.
 
 If outputs differ, inspect the first two examples without running the full
 probe again:
