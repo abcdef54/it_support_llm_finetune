@@ -1,0 +1,11 @@
+torch
+datasets
+transformers
+peft
+trl
+accelerate
+bitsandbytes
+huggingface_hub
+python-dotenv
+tqdm
+bert-score==0.3.13

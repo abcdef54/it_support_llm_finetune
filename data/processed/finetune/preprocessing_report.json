@@ -1,0 +1,32 @@
+{
+  "input": 28587,
+  "filtered": 21251,
+  "duplicates": 0,
+  "exclusion_reasons": {
+    "non_english": 12249,
+    "queue_not_allowed": 8995,
+    "prompt_or_answer_under_20_characters": 7,
+    "duplicate_prompt": 0
+  },
+  "kept": 7336,
+  "train": 6602,
+  "validation": 734,
+  "validation_ratio": 0.1,
+  "seed": 42,
+  "filter_criteria": {
+    "language": "en",
+    "allowed_queues": [
+      "IT Support",
+      "Service Outages and Maintenance",
+      "Technical Support"
+    ],
+    "minimum_prompt_characters": 20,
+    "minimum_answer_characters": 20,
+    "deduplication_key": "normalized prompt text"
+  },
+  "source_file": "data/raw/finetune/aa_dataset-tickets-multi-lang-5-2-50-version.csv",
+  "output_files": [
+    "data/processed/finetune/train.jsonl",
+    "data/processed/finetune/validation.jsonl"
+  ]
+}
