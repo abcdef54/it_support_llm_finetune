@@ -24,6 +24,8 @@ from benchmark.common.dataset import load_techqa
 from benchmark.common.generation import batches
 from benchmark.common.judge import build_judge_messages, parse_judge_output
 
+PROBE_BATCH_SIZES = (1, 2, 4, 8, 16)
+
 
 def _measure(generator: QwenGenerator, prompts: list[list[dict[str, str]]], size: int, token_limit: int) -> tuple[list[str], dict]:
     import torch
@@ -138,7 +140,7 @@ def run(project_root: Path, count: int = 8, answer_token_limit: int = MAX_NEW_TO
             report["first_token_diagnostic"] = _first_token_diagnostic(generator, answer_prompts)
         reference_answers = None
         reference_judgments = None
-        for size in (size for size in (1, 2, 4, 8) if size <= count):
+        for size in (size for size in PROBE_BATCH_SIZES if size <= count):
             try:
                 answers, answer_stats = _measure(generator, answer_prompts, size, answer_token_limit)
                 if reference_answers is None:
@@ -176,5 +178,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     result = run(args.project_root.resolve(), args.count, args.answer_token_limit, args.diagnose)
     print(json.dumps(result, indent=2))
-    if any(data.get("answer_differences") or data.get("judge_differences") for data in result["batch_sizes"].values()):
-        raise SystemExit("Batch outputs differed from batch size 1; investigate before the full benchmark")
+    if any("error" in data for data in result["batch_sizes"].values()):
+        raise SystemExit("A batch ran out of memory; lower the affected batch size before the full benchmark")
+    if any(data.get("judge_score_changes") for data in result["batch_sizes"].values()):
+        raise SystemExit("Judge scores changed or a response was invalid; investigate before the full benchmark")

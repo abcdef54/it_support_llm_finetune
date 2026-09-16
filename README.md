@@ -46,8 +46,20 @@ CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.probe_batching --p
 It checks answer and judge outputs at batch sizes 1, 2, 4, and 8, and prints
 elapsed time, examples per second, and peak allocated VRAM. It does not write
 benchmark results. The configured answer and judge batch sizes are in
-`benchmark/baseline/config.py`; their initial values of 4 are provisional until
-the RTX 5090 probe is run.
+`benchmark/baseline/config.py`; both are set to 8 based on the 5090 throughput
+probe. Batched bfloat16 greedy generation can differ from batch size 1 later in
+long outputs even when prompts and the first generated tokens match. The probe
+reports text and judge-score differences; judge score changes, invalid judge
+responses, or CUDA OOM make it fail.
+
+To also test batch size 16 on 16 examples, run:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.probe_batching --project-root . --count 16
+```
+
+Keep the production batch sizes at 8 until the probe confirms throughput and
+memory headroom for 16.
 
 If outputs differ, inspect the first two examples without running the full
 probe again:
