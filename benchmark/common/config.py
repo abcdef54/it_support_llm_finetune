@@ -15,6 +15,7 @@ JUDGE_MODEL_ID = "Qwen/Qwen3.5-9B"
 JUDGE_MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 JUDGE_TEMPERATURE = 0.0
 JUDGE_MAX_NEW_TOKENS = 256
+JUDGE_RETRY_MAX_NEW_TOKENS = 1024
 
 JUDGE_SYSTEM_PROMPT = """You are a strict evaluator of IT-support answers.
 Judge only technical correctness and relevance using the supplied question,

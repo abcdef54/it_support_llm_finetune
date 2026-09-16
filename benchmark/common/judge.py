@@ -4,7 +4,7 @@ import json
 import re
 from dataclasses import dataclass
 
-from benchmark.common.config import JUDGE_SYSTEM_PROMPT, JUDGE_USER_TEMPLATE
+from benchmark.common.config import JUDGE_RETRY_MAX_NEW_TOKENS, JUDGE_SYSTEM_PROMPT, JUDGE_USER_TEMPLATE
 from benchmark.common.schemas import TechQAExample
 
 
@@ -40,4 +40,19 @@ def parse_judge_output(output: str) -> JudgeDecision:
         score, reason = value.get("score"), value.get("reason")
         if isinstance(score, int) and not isinstance(score, bool) and 0 <= score <= 4 and isinstance(reason, str):
             return JudgeDecision(score, reason.strip())
-    raise ValueError(f"Judge returned invalid output: {output[:200]!r}")
+    preview = output if len(output) <= 320 else output[:160] + " ... " + output[-160:]
+    raise ValueError(f"Judge returned invalid output ({len(output)} characters): {preview!r}")
+
+
+def parse_or_retry_judge_output(model, messages: list[dict[str, str]], output: str) -> tuple[JudgeDecision, bool]:
+    try:
+        return parse_judge_output(output), False
+    except ValueError:
+        # Same prompt and greedy decoding; only the output ceiling is raised.
+        retry_outputs = model.generate_batch([messages], JUDGE_RETRY_MAX_NEW_TOKENS)
+        if len(retry_outputs) != 1:
+            raise ValueError(f"Judge retry returned {len(retry_outputs)} outputs")
+        try:
+            return parse_judge_output(retry_outputs[0]), True
+        except ValueError as exc:
+            raise ValueError(f"Judge retry at {JUDGE_RETRY_MAX_NEW_TOKENS} tokens was invalid: {exc}") from exc

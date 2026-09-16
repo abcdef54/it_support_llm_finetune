@@ -68,3 +68,42 @@ The complete benchmark remains a separate command:
 ```bash
 CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.run_benchmark --project-root .
 ```
+
+If a judge response is invalid, both benchmark variants retry that same prompt
+once with a 1,024-token output limit (the usual limit remains 256). The metrics
+JSON records `judge_retries` and both limits. A second invalid response stops
+the run with the TechQA ID and an output preview including its end.
+
+## Fine-tuned benchmark (no RAG)
+
+The fine-tuned run uses the same 902-example TechQA file, prompt, BF16 base
+checkpoint, batched generation, judge, and metrics as the baseline. It attaches
+`models/qwen3.5-9b-it-support-qlora` only while generating answers, then unloads
+that model and loads a fresh base checkpoint for judging. The adapter was saved
+with PEFT 0.21.0; use PEFT 0.21.0 or newer in the benchmark environment. Its
+saved BF16 weights are loaded without PEFT's automatic FP32 adapter cast.
+
+Run lightweight tests without loading Qwen:
+
+```bash
+.venv/bin/python -m unittest discover -s tests -q
+.venv/bin/python -m unittest benchmark.finetuned.test_benchmark -q
+```
+
+On the RTX 5090, first verify the real adapter and fresh base judge with a
+synthetic prompt. This does not read TechQA or write results:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.finetuned.run_benchmark --project-root . --smoke
+```
+
+If that passes, the full fine-tuned benchmark command is:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.finetuned.run_benchmark --project-root .
+```
+
+It writes `results/finetuned/predictions.jsonl` and
+`results/finetuned/metrics.json` without replacing `results/base/`. Existing
+fine-tuned results are protected unless `--overwrite` is supplied. Do not mix
+results from different batch-size settings in a controlled comparison.
