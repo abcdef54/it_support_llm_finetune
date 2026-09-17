@@ -5,7 +5,7 @@ import json
 import random
 from dataclasses import asdict
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import Callable
 
 from tqdm import tqdm
@@ -46,7 +46,7 @@ def _set_seed(seed: int) -> None:
 def run_benchmark(
     project_root: Path,
     *,
-    settings: ModuleType,
+    settings: ModuleType | SimpleNamespace,
     load_answer_model: Callable,
     load_judge_model: Callable,
     reuse_answer_as_judge: bool,

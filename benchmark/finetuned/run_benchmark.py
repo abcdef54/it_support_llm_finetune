@@ -9,13 +9,15 @@ from benchmark.common.config import JUDGE_MAX_NEW_TOKENS, JUDGE_MODEL_ID, JUDGE_
 from benchmark.common.judge import build_judge_messages, parse_or_retry_judge_output
 from benchmark.common.runner import run_benchmark
 from benchmark.common.schemas import TechQAExample
-from benchmark.finetuned import config
+from benchmark.finetuned import config as benchmark_config
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
 
 
-def run(project_root: Path, overwrite: bool = False, resume: bool = False) -> dict:
+def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "v1") -> dict:
+    config = benchmark_config.for_experiment(experiment)
     adapter_path = project_root / config.ADAPTER_PATH
-    adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION)
+    adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
+                              expected_experiment="dex" if experiment == "dex" else None)
     return run_benchmark(
         project_root,
         settings=config,
@@ -36,10 +38,12 @@ def run(project_root: Path, overwrite: bool = False, resume: bool = False) -> di
     )
 
 
-def smoke(project_root: Path) -> dict:
+def smoke(project_root: Path, experiment: str = "v1") -> dict:
     """Check real adapter and base-judge inference without reading TechQA or writing results."""
+    config = benchmark_config.for_experiment(experiment)
     adapter_path = project_root / config.ADAPTER_PATH
-    adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION)
+    adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
+                              expected_experiment="dex" if experiment == "dex" else None)
     prompts = [
         [
             {"role": "system", "content": config.ANSWER_SYSTEM_PROMPT},
@@ -77,5 +81,8 @@ if __name__ == "__main__":
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
     parser.add_argument("--smoke", action="store_true", help="Run a synthetic GPU smoke test without TechQA or result files")
+    parser.add_argument("--experiment", choices=("v1", "dex"), default="v1",
+                        help="Select a separate adapter and result directory; V1 remains the default")
     args = parser.parse_args()
-    print(smoke(args.project_root.resolve()) if args.smoke else run(args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume))
+    print(smoke(args.project_root.resolve(), args.experiment) if args.smoke else run(
+        args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, experiment=args.experiment))

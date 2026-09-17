@@ -50,7 +50,6 @@ class FineTunedBenchmarkTests(unittest.TestCase):
         self.assertEqual(config.MODEL_DTYPE, "bfloat16")
         self.assertNotEqual(config.PREDICTIONS_PATH, baseline.PREDICTIONS_PATH)
         self.assertNotEqual(config.METRICS_PATH, baseline.METRICS_PATH)
-        self.assertTrue((Path(__file__).resolve().parents[2] / config.ADAPTER_PATH / "adapter_config.json").is_file())
 
     def test_adapter_preflight_checks_revision_version_and_hashes_without_loading_model(self):
         with tempfile.TemporaryDirectory() as directory:

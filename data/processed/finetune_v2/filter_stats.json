@@ -1,0 +1,343 @@
+{
+  "removals_by_reason": {
+    "blanket_security_bypass": 792,
+    "classification": 9698,
+    "complex_company_persona": 896,
+    "confirmed_technical_artifact": 29,
+    "domain_restriction": 3948,
+    "duplicate_conversation": 7737,
+    "duplicate_prompt": 14556,
+    "generic_non_answer": 1,
+    "identity_cap": 7,
+    "language_noise": 73,
+    "malformed_or_empty": 1,
+    "mixed_source_persona": 698,
+    "no_technical_guidance": 8294,
+    "repeated_response_cap": 283,
+    "selection_cap": 26213
+  },
+  "transformations_after_quality_filter": {
+    "capability_genericized": 17410,
+    "mack_converted": 34864,
+    "company_rewritten": 662,
+    "identity_rewritten": 186
+  },
+  "transformations_in_final_corpus": {
+    "capability_genericized": 4909,
+    "mack_converted": 10385,
+    "company_rewritten": 231,
+    "identity_rewritten": 8
+  },
+  "candidate_count_after_quality_filter": 78796,
+  "candidate_count_before_selection": 56213,
+  "final_selected_count": 30000,
+  "train_count": 27000,
+  "validation_count": 3000,
+  "topic_distribution_candidates": {
+    "cloud_servers": 9145,
+    "databases": 1148,
+    "developer_tools": 951,
+    "email_outlook": 2340,
+    "enterprise_apps": 1651,
+    "hardware_drivers": 6084,
+    "identity": 8,
+    "linux": 199,
+    "network_vpn": 7586,
+    "office": 1193,
+    "other_it": 7463,
+    "performance": 1037,
+    "recovery_storage": 1809,
+    "security_identity": 4544,
+    "software": 3427,
+    "teams": 2346,
+    "windows": 5282
+  },
+  "topic_distribution_final": {
+    "cloud_servers": 2474,
+    "databases": 1148,
+    "developer_tools": 951,
+    "email_outlook": 2340,
+    "enterprise_apps": 1651,
+    "hardware_drivers": 2474,
+    "identity": 8,
+    "linux": 199,
+    "network_vpn": 2474,
+    "office": 1193,
+    "other_it": 2474,
+    "performance": 1037,
+    "recovery_storage": 1809,
+    "security_identity": 2474,
+    "software": 2474,
+    "teams": 2346,
+    "windows": 2474
+  },
+  "response_lengths_after": {
+    "characters": {
+      "min": 18,
+      "median": 139.0,
+      "mean": 144.09,
+      "p95": 213,
+      "max": 1363
+    },
+    "words": {
+      "min": 4,
+      "median": 20.0,
+      "mean": 20.53,
+      "p95": 32,
+      "max": 195
+    }
+  },
+  "top_retained_responses": [
+    {
+      "text": "i am dex, a diagnostic expert slm developed by huy, an ai student. my purpose is to provide practical and technically useful it support and troubleshooting assistance.",
+      "count": 8
+    },
+    {
+      "text": "suggested diagnostic approach: check gpo processing time, evaluate profile load delays, scan authentication logs, and measure script execution duration.",
+      "count": 5
+    },
+    {
+      "text": "1. ensure the user has a certificate mapped in ad. 2. check the vpn server configuration for certificate requirements. 3. update the user's certificate in ad. 4. re-enroll the user's device with the certificate.",
+      "count": 5
+    },
+    {
+      "text": "repair office installation, update .net framework, reinstall corrupted components, and check for system updates.",
+      "count": 5
+    },
+    {
+      "text": "1. check for access denied errors. 2. ensure proper permissions. 3. monitor replication status. 4. restart replication services if necessary.",
+      "count": 5
+    },
+    {
+      "text": "repair installation, update client, clean registry, and restore from backup if necessary.",
+      "count": 5
+    },
+    {
+      "text": "run memory diagnostics, check for hardware failures, and repair boot configuration data.",
+      "count": 5
+    },
+    {
+      "text": "repair pst file, disable add-ins, and rebuild index.",
+      "count": 5
+    },
+    {
+      "text": "disable automatic send/receive, compact mail folders, and run the 'outlook repair' tool from the control panel.",
+      "count": 5
+    },
+    {
+      "text": "run the windows update troubleshooter, ensure admin rights, and check for disk errors.",
+      "count": 5
+    },
+    {
+      "text": "run the installation as administrator, check the system logs for errors, and ensure the installation source is valid and accessible.",
+      "count": 5
+    },
+    {
+      "text": "1. check optane memory health via dell diagnostics. 2. update optane manager software. 3. re-seated memory modules. 4. monitor system logs for recurring errors.",
+      "count": 5
+    },
+    {
+      "text": "check for profile corruption, repair profile, and verify server connectivity.",
+      "count": 5
+    },
+    {
+      "text": "1. ensure the update package is available on the distribution point. 2. check network connectivity to the dp. 3. repair the sccm client installation. 4. re-run the patch management process.",
+      "count": 5
+    },
+    {
+      "text": "check for driver issues, validate ram, and perform memory diagnostics.",
+      "count": 4
+    }
+  ],
+  "remaining_mack_occurrences": 0,
+  "remaining_company_occurrences": 0,
+  "remaining_other_source_persona_occurrences": 0,
+  "dex_occurrences": 10233,
+  "formatted_token_limit": 1024,
+  "max_formatted_tokens": 303,
+  "multi_turn_retained": 0,
+  "source_company_records_removed": 4589,
+  "near_duplicate_policy": "Normalized exact prompts/pairs deduplicated; identical normalized responses capped at 5 (identity capped separately). No semantic pairwise comparison.",
+  "topic_method": "Deterministic keyword buckets from user questions; proxy categories, not source labels. Seeded round-robin selection.",
+  "technical_quality_limit": "Deterministic content screening does not certify factual accuracy of synthetic troubleshooting advice; review the audit before training.",
+  "response_tokens_before": {
+    "mean": 25.08,
+    "median": 25,
+    "max": 285
+  },
+  "response_tokens_after": {
+    "mean": 28.73,
+    "median": 28.0,
+    "max": 285
+  },
+  "response_lengths_before": {
+    "characters": {
+      "min": 8,
+      "median": 129,
+      "mean": 125.34,
+      "p95": 203,
+      "max": 1363
+    },
+    "words": {
+      "min": 1,
+      "median": 18,
+      "mean": 18.02,
+      "p95": 31,
+      "max": 200
+    }
+  },
+  "raw_classification_labels": {
+    "outlook_issue": 1414,
+    "teams_issue": 1394,
+    "network_issue": 1751,
+    "performance": 709,
+    "windows_issue": 1437,
+    "device_support": 944,
+    "security_identity": 887,
+    "driver_failure": 1160,
+    "windows_issues": 1,
+    "outloutk_issue": 1
+  },
+  "top_raw_responses": [
+    {
+      "text": "network_issue",
+      "count": 1751
+    },
+    {
+      "text": "windows_issue",
+      "count": 1437
+    },
+    {
+      "text": "outlook_issue",
+      "count": 1414
+    },
+    {
+      "text": "teams_issue",
+      "count": 1394
+    },
+    {
+      "text": "driver_failure",
+      "count": 1160
+    },
+    {
+      "text": "device_support",
+      "count": 944
+    },
+    {
+      "text": "security_identity",
+      "count": 887
+    },
+    {
+      "text": "performance",
+      "count": 709
+    },
+    {
+      "text": "i cannot generate creative content. i only provide enterprise it support.",
+      "count": 385
+    },
+    {
+      "text": "mack checks gpo processing time, evaluates profile load delays, scans authentication logs, and measures script execution duration.",
+      "count": 328
+    },
+    {
+      "text": "mack inspects routing tables, checks overlapping subnets, evaluates dns suffix application, and tests adapter priority.",
+      "count": 310
+    },
+    {
+      "text": "mack checks device manager error codes, evaluates driver load failures, verifies inf signatures, and inspects system logs for binding issues.",
+      "count": 231
+    },
+    {
+      "text": "i cannot generate creative or personal content. i only provide enterprise it support.",
+      "count": 183
+    },
+    {
+      "text": "i am mack, an slm developed by the dev team at mbgoc pvt. ltd.",
+      "count": 159
+    },
+    {
+      "text": "mack checks hash signatures, verifies restore points, scans backup metadata, and inspects integrity logs.",
+      "count": 153
+    }
+  ],
+  "top_raw_prompts": [
+    {
+      "text": "explain how mack validates corrupted drivers.",
+      "count": 375
+    },
+    {
+      "text": "explain how mack detects slow login performance.",
+      "count": 349
+    },
+    {
+      "text": "explain how mack identifies vpn routing conflicts.",
+      "count": 328
+    },
+    {
+      "text": "explain how mack validates backup integrity.",
+      "count": 284
+    },
+    {
+      "text": "explain how mack analyzes slow boot.",
+      "count": 109
+    },
+    {
+      "text": "explain how mack detects network dns corruption.",
+      "count": 105
+    },
+    {
+      "text": "how does mack identify camera binding conflicts?",
+      "count": 105
+    },
+    {
+      "text": "explain how mack validates driver inf signatures.",
+      "count": 77
+    },
+    {
+      "text": "fix corrupted user profile.",
+      "count": 70
+    },
+    {
+      "text": "who are you?",
+      "count": 70
+    },
+    {
+      "text": "state your identity clearly.",
+      "count": 66
+    },
+    {
+      "text": "describe your purpose.",
+      "count": 66
+    },
+    {
+      "text": "explain how mack detects inefficient cloud serverless layer observability.",
+      "count": 62
+    },
+    {
+      "text": "mack, my touch keyboard isn't working.",
+      "count": 58
+    },
+    {
+      "text": "mack, my laptop won't turn on.",
+      "count": 57
+    }
+  ],
+  "audit": {
+    "passed": true,
+    "train_validation_prompt_overlap": 0,
+    "exact_benchmark_overlap": 0,
+    "remaining_source_identity": 0,
+    "remaining_labels": 0,
+    "remaining_detected_noise": 0
+  },
+  "technical_rule_references": {
+    "tempdb_backup_restore": "https://learn.microsoft.com/en-us/sql/relational-databases/databases/tempdb-database",
+    "outlook_release_names": "https://support.microsoft.com/en-us/outlook/getstarted/what-version-of-outlook-do-i-have"
+  },
+  "retained_boilerplate_phrase_counts": {
+    "Thank you for reaching out": 0,
+    "We will provide": 0,
+    "follow-up email": 0
+  },
+  "large_removal_rules_for_review": {}
+}

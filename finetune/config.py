@@ -6,22 +6,34 @@ TRAIN_DATASET = "data/processed/finetune/train.jsonl"
 VALIDATION_DATASET = "data/processed/finetune/validation.jsonl"
 OUTPUT_DIR = "models/qwen3.5-9b-it-support-qlora"
 
+EXPERIMENTS = {
+    "v1": {"train_dataset": TRAIN_DATASET, "validation_dataset": VALIDATION_DATASET, "output_dir": OUTPUT_DIR},
+    "dex": {
+        "train_dataset": "data/processed/finetune_v2/train.jsonl",
+        "validation_dataset": "data/processed/finetune_v2/validation.jsonl",
+        "output_dir": "models/qwen3.5-9b-it-support-dex-qlora",
+    },
+}
+
 SEED = 42
 MIN_GPU_MEMORY_GIB = 28
 MAX_SEQUENCE_LENGTH = 1024
-NUM_TRAIN_EPOCHS = 2.0
-PER_DEVICE_TRAIN_BATCH_SIZE = 2
-PER_DEVICE_EVAL_BATCH_SIZE = 1
-GRADIENT_ACCUMULATION_STEPS = 4
+NUM_TRAIN_EPOCHS = 1.0
+PER_DEVICE_TRAIN_BATCH_SIZE = 8
+PER_DEVICE_EVAL_BATCH_SIZE = 8
+GRADIENT_ACCUMULATION_STEPS = 1
 EFFECTIVE_BATCH_SIZE = PER_DEVICE_TRAIN_BATCH_SIZE * GRADIENT_ACCUMULATION_STEPS
 LEARNING_RATE = 1e-4
 LR_SCHEDULER_TYPE = "cosine"
 WARMUP_STEPS = 100
 OPTIMIZER = "paged_adamw_8bit"
 LOGGING_STEPS = 10
-EVAL_STEPS = 100
-SAVE_STEPS = 100
+EVAL_STEPS = 500
+SAVE_STEPS = 500
 SAVE_TOTAL_LIMIT = 2
+LOAD_BEST_MODEL_AT_END = True
+METRIC_FOR_BEST_MODEL = "eval_loss"
+GREATER_IS_BETTER = False
 
 QUANTIZATION_BITS = 4
 QUANTIZATION_TYPE = "nf4"
@@ -47,9 +59,14 @@ LORA_TARGET_MODULES = (
 )
 
 
-def as_dict() -> dict:
+def as_dict(experiment: str = "v1") -> dict:
+    if experiment not in EXPERIMENTS:
+        raise ValueError(f"Unknown training experiment: {experiment}")
     return {
-        name.lower(): value
-        for name, value in globals().items()
-        if name.isupper() and isinstance(value, (str, int, float, bool, tuple))
+        **{
+            name.lower(): value
+            for name, value in globals().items()
+            if name.isupper() and isinstance(value, (str, int, float, bool, tuple))
+        },
+        **EXPERIMENTS[experiment],
     }

@@ -1,0 +1,201 @@
+{
+  "raw_records": 103226,
+  "valid_conversations": 103225,
+  "malformed_records": 1,
+  "native_messages_arrays": 103226,
+  "json_string_messages": 0,
+  "role_sequences": {
+    "user/assistant": 103225
+  },
+  "multi_turn_records": 0,
+  "category_metadata": "None in source schema",
+  "mack_records": 40893,
+  "mack_occurrences": 62258,
+  "company_records": 4820,
+  "discovered_source_companies": [
+    "MBGOC",
+    "MBGOC Pvt. Ltd."
+  ],
+  "inconsistent_persona_aliases": [
+    "Axero",
+    "Ax",
+    "Axleshoot",
+    "Ax0",
+    "Axo",
+    "Axxio",
+    "Mackn",
+    "Axpio",
+    "Ax.compliance",
+    "AxMack",
+    "Ax0io",
+    "Ax3io",
+    "Ax.computer",
+    "Axelling",
+    "Axleshoots",
+    "Axxo",
+    "Ax0x",
+    "Mackerms",
+    "Axlo",
+    "Ax3",
+    "Axalo",
+    "Ax0ler",
+    "Ax.com",
+    "Ax.0x00000024",
+    "Axool",
+    "Axelys",
+    "Azure AI Assistant"
+  ],
+  "inconsistent_persona_records": 701,
+  "classification_labels": {
+    "outlook_issue": 1414,
+    "teams_issue": 1394,
+    "network_issue": 1751,
+    "performance": 709,
+    "windows_issue": 1437,
+    "device_support": 944,
+    "security_identity": 887,
+    "driver_failure": 1160,
+    "windows_issues": 1,
+    "outloutk_issue": 1
+  },
+  "response_lengths": {
+    "characters": {
+      "min": 8,
+      "median": 129,
+      "mean": 125.34,
+      "p95": 203,
+      "max": 1363
+    },
+    "words": {
+      "min": 1,
+      "median": 18,
+      "mean": 18.02,
+      "p95": 31,
+      "max": 200
+    }
+  },
+  "top_responses": [
+    {
+      "text": "network_issue",
+      "count": 1751
+    },
+    {
+      "text": "windows_issue",
+      "count": 1437
+    },
+    {
+      "text": "outlook_issue",
+      "count": 1414
+    },
+    {
+      "text": "teams_issue",
+      "count": 1394
+    },
+    {
+      "text": "driver_failure",
+      "count": 1160
+    },
+    {
+      "text": "device_support",
+      "count": 944
+    },
+    {
+      "text": "security_identity",
+      "count": 887
+    },
+    {
+      "text": "performance",
+      "count": 709
+    },
+    {
+      "text": "i cannot generate creative content. i only provide enterprise it support.",
+      "count": 385
+    },
+    {
+      "text": "mack checks gpo processing time, evaluates profile load delays, scans authentication logs, and measures script execution duration.",
+      "count": 328
+    },
+    {
+      "text": "mack inspects routing tables, checks overlapping subnets, evaluates dns suffix application, and tests adapter priority.",
+      "count": 310
+    },
+    {
+      "text": "mack checks device manager error codes, evaluates driver load failures, verifies inf signatures, and inspects system logs for binding issues.",
+      "count": 231
+    },
+    {
+      "text": "i cannot generate creative or personal content. i only provide enterprise it support.",
+      "count": 183
+    },
+    {
+      "text": "i am mack, an slm developed by the dev team at mbgoc pvt. ltd.",
+      "count": 159
+    },
+    {
+      "text": "mack checks hash signatures, verifies restore points, scans backup metadata, and inspects integrity logs.",
+      "count": 153
+    }
+  ],
+  "top_prompts": [
+    {
+      "text": "explain how mack validates corrupted drivers.",
+      "count": 375
+    },
+    {
+      "text": "explain how mack detects slow login performance.",
+      "count": 349
+    },
+    {
+      "text": "explain how mack identifies vpn routing conflicts.",
+      "count": 328
+    },
+    {
+      "text": "explain how mack validates backup integrity.",
+      "count": 284
+    },
+    {
+      "text": "explain how mack analyzes slow boot.",
+      "count": 109
+    },
+    {
+      "text": "explain how mack detects network dns corruption.",
+      "count": 105
+    },
+    {
+      "text": "how does mack identify camera binding conflicts?",
+      "count": 105
+    },
+    {
+      "text": "explain how mack validates driver inf signatures.",
+      "count": 77
+    },
+    {
+      "text": "fix corrupted user profile.",
+      "count": 70
+    },
+    {
+      "text": "who are you?",
+      "count": 70
+    },
+    {
+      "text": "state your identity clearly.",
+      "count": 66
+    },
+    {
+      "text": "describe your purpose.",
+      "count": 66
+    },
+    {
+      "text": "explain how mack detects inefficient cloud serverless layer observability.",
+      "count": 62
+    },
+    {
+      "text": "mack, my touch keyboard isn't working.",
+      "count": 58
+    },
+    {
+      "text": "mack, my laptop won't turn on.",
+      "count": 57
+    }
+  ]
+}

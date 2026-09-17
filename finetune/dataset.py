@@ -30,8 +30,11 @@ def load_datasets(train_path: Path, validation_path: Path):
     from datasets import Dataset
 
     train, validation = load_split(train_path), load_split(validation_path)
-    train_prompts = {text_key(row["prompt"][0]["content"]) for row in train}
-    validation_prompts = {text_key(row["prompt"][0]["content"]) for row in validation}
+    key = lambda row: tuple((message["role"], text_key(message["content"])) for message in row["prompt"])
+    train_prompts = {key(row) for row in train}
+    validation_prompts = {key(row) for row in validation}
+    if len(train_prompts) != len(train) or len(validation_prompts) != len(validation):
+        raise ValueError("Fine-tuning split contains duplicate prompts")
     overlap = train_prompts & validation_prompts
     if overlap:
         raise ValueError(f"Train and validation contain {len(overlap)} overlapping prompts")
@@ -53,9 +56,7 @@ def inspect_chat_format(processor, records: list[dict], max_length: int) -> dict
         longest = max(longest, length)
         over_limit += length > max_length
         if index < 3:
-            prompt = record["prompt"][0]["content"]
-            completion = record["completion"][0]["content"]
-            if prompt not in rendered or completion not in rendered:
+            if any(message["content"] not in rendered for message in messages):
                 raise ValueError("Qwen chat template dropped prompt or completion content")
             if "[INST]" in rendered:
                 raise ValueError("Incompatible Llama-style chat token found")
@@ -68,12 +69,18 @@ def inspect_chat_format(processor, records: list[dict], max_length: int) -> dict
 def _validate_record(row: object, path: Path, line_number: int) -> None:
     if not isinstance(row, dict) or set(row) != {"prompt", "completion"}:
         raise ValueError(f"Invalid schema in {path} line {line_number}")
-    for field, role in (("prompt", "user"), ("completion", "assistant")):
-        messages = row[field]
-        if not isinstance(messages, list) or len(messages) != 1:
-            raise ValueError(f"{field} must contain exactly one message in {path} line {line_number}")
-        message = messages[0]
+    prompt, completion = row["prompt"], row["completion"]
+    if not isinstance(prompt, list) or not prompt or not isinstance(completion, list) or len(completion) != 1:
+        raise ValueError(f"Expected a nonempty prompt and one assistant completion in {path} line {line_number}")
+    previous = None
+    for index, message in enumerate(prompt + completion):
         if not isinstance(message, dict) or set(message) != {"role", "content"}:
-            raise ValueError(f"Invalid {field} message in {path} line {line_number}")
-        if message["role"] != role or not isinstance(message["content"], str) or not message["content"].strip():
-            raise ValueError(f"Invalid {field} role or content in {path} line {line_number}")
+            raise ValueError(f"Invalid message in {path} line {line_number}")
+        expected = "assistant" if previous == "user" else "user"
+        role = message["role"]
+        if (role != expected and not (index == 0 and role == "system")
+                or not isinstance(message["content"], str) or not message["content"].strip()):
+            raise ValueError(f"Invalid conversation role or content in {path} line {line_number}")
+        previous = role
+    if previous != "assistant":
+        raise ValueError(f"Final completion must be assistant in {path} line {line_number}")

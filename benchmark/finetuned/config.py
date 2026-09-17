@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from benchmark.baseline import config as baseline
 
 # Source the controlled experiment settings from the baseline, not a copy.
@@ -23,3 +24,14 @@ ADAPTER_PATH = "models/qwen3.5-9b-it-support-qlora"
 ADAPTER_AUTOCAST_DTYPE = False  # Keep the saved BF16 LoRA weights in BF16 for inference.
 PREDICTIONS_PATH = "results/finetuned/predictions.jsonl"
 METRICS_PATH = "results/finetuned/metrics.json"
+
+
+def for_experiment(experiment: str = "v1") -> SimpleNamespace:
+    if experiment not in {"v1", "dex"}:
+        raise ValueError(f"Unknown fine-tuned benchmark experiment: {experiment}")
+    values = {name: value for name, value in globals().items() if name.isupper()}
+    if experiment == "dex":
+        values.update(ADAPTER_PATH="models/qwen3.5-9b-it-support-dex-qlora",
+                      PREDICTIONS_PATH="results/finetuned_dex/predictions.jsonl",
+                      METRICS_PATH="results/finetuned_dex/metrics.json")
+    return SimpleNamespace(**values)
