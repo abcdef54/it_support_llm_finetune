@@ -71,8 +71,18 @@ CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.run_benchmark --pr
 
 If a judge response is invalid, both benchmark variants retry that same prompt
 once with a 1,024-token output limit (the usual limit remains 256). The metrics
-JSON records `judge_retries` and both limits. A second invalid response stops
-the run with the TechQA ID and an output preview including its end.
+JSON records `judge_retries` and both limits. If both outputs start with the
+same valid score but the explanation never forms valid JSON, that score is
+accepted and labeled `judge_recovered` in the prediction; `judge_recovered_scores`
+counts these cases in the metrics JSON. Conflicting or missing scores still stop
+the run with the TechQA ID. No explanation is invented from truncated text.
+
+Progress is saved after every answer batch and judge batch in the variant's
+`results/.../progress.sqlite3` file. If a run stops, rerun the same command with
+`--resume`; it checks the dataset and configuration before reusing saved work.
+The progress file is removed after results are written successfully. Runs made
+before this checkpoint change cannot be resumed. If a final output file was
+partially written during a failure, use both `--resume --overwrite` to finish.
 
 ## Fine-tuned benchmark (no RAG)
 
