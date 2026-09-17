@@ -8,16 +8,16 @@ from benchmark.baseline.model import QwenGenerator
 from benchmark.common.config import JUDGE_MAX_NEW_TOKENS, JUDGE_MODEL_ID, JUDGE_MODEL_REVISION
 from benchmark.common.judge import build_judge_messages, parse_or_retry_judge_output
 from benchmark.common.runner import run_benchmark
-from benchmark.common.schemas import TechQAExample
+from benchmark.common.schemas import BenchmarkExample
 from benchmark.finetuned import config as benchmark_config
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
 
 
-def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "v1") -> dict:
+def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "dex_v2") -> dict:
     config = benchmark_config.for_experiment(experiment)
     adapter_path = project_root / config.ADAPTER_PATH
     adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
-                              expected_experiment="dex" if experiment == "dex" else None)
+                              expected_experiment=experiment if experiment in {"dex", "dex_v2"} else None)
     return run_benchmark(
         project_root,
         settings=config,
@@ -38,12 +38,12 @@ def run(project_root: Path, overwrite: bool = False, resume: bool = False, exper
     )
 
 
-def smoke(project_root: Path, experiment: str = "v1") -> dict:
-    """Check real adapter and base-judge inference without reading TechQA or writing results."""
+def smoke(project_root: Path, experiment: str = "dex_v2") -> dict:
+    """Check real adapter and base-judge inference without reading benchmark data or writing results."""
     config = benchmark_config.for_experiment(experiment)
     adapter_path = project_root / config.ADAPTER_PATH
     adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
-                              expected_experiment="dex" if experiment == "dex" else None)
+                              expected_experiment=experiment if experiment in {"dex", "dex_v2"} else None)
     prompts = [
         [
             {"role": "system", "content": config.ANSWER_SYSTEM_PROMPT},
@@ -64,7 +64,8 @@ def smoke(project_root: Path, experiment: str = "v1") -> dict:
 
     judge = QwenGenerator.load(JUDGE_MODEL_ID, JUDGE_MODEL_REVISION)
     try:
-        example = TechQAExample("synthetic-smoke", prompts[0][1]["content"], "Use systemctl status SERVICE.", "dev", True)
+        example = BenchmarkExample("synthetic-smoke", prompts[0][1]["content"],
+                                   "Use systemctl status SERVICE.", "synthetic", True)
         judge_messages = build_judge_messages(example, answers[0])
         judgment = judge.generate_batch([judge_messages], JUDGE_MAX_NEW_TOKENS)
         if len(judgment) != 1:
@@ -76,13 +77,13 @@ def smoke(project_root: Path, experiment: str = "v1") -> dict:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the fine-tuned, no-RAG TechQA benchmark.")
+    parser = argparse.ArgumentParser(description="Run the fine-tuned, no-RAG benchmark.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
-    parser.add_argument("--smoke", action="store_true", help="Run a synthetic GPU smoke test without TechQA or result files")
-    parser.add_argument("--experiment", choices=("v1", "dex"), default="v1",
-                        help="Select a separate adapter and result directory; V1 remains the default")
+    parser.add_argument("--smoke", action="store_true", help="Run a synthetic GPU smoke test without benchmark data or results")
+    parser.add_argument("--experiment", choices=("v1", "dex", "dex_v2"), default="dex_v2",
+                        help="Select adapter, benchmark, and result directory; dex_v2 uses the new general-IT test")
     args = parser.parse_args()
     print(smoke(args.project_root.resolve(), args.experiment) if args.smoke else run(
         args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, experiment=args.experiment))

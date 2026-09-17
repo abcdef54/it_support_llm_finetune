@@ -1,1 +1,1 @@
-"""Fine-tuned, no-RAG TechQA benchmark."""
+"""Fine-tuned, no-RAG benchmark variants."""

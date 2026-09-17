@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 BASE_MODEL_ID = "Qwen/Qwen3.5-9B"
 BASE_MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 MODEL_DTYPE = "bfloat16"
@@ -18,3 +20,18 @@ METRICS_PATH = "results/base/metrics.json"
 
 ANSWER_SYSTEM_PROMPT = """You are an IT support assistant. Give a concise, technically useful answer.
 If the question cannot be answered reliably from the information given, say that you do not know."""
+
+
+def for_benchmark(benchmark: str = "general_it") -> SimpleNamespace:
+    if benchmark not in {"techqa", "general_it"}:
+        raise ValueError(f"Unknown benchmark: {benchmark}")
+    values = {name: value for name, value in globals().items() if name.isupper()}
+    if benchmark == "general_it":
+        values.update(
+            DATASET_KIND="general_it",
+            DATASET_PATH="data/processed/benchmark/dex_general_it_benchmark.jsonl",
+            DATASET_MANIFEST_PATH="data/processed/benchmark/dex_general_it_manifest.json",
+            PREDICTIONS_PATH="results/base_general_it/predictions.jsonl",
+            METRICS_PATH="results/base_general_it/metrics.json",
+        )
+    return SimpleNamespace(**values)

@@ -7,12 +7,15 @@ from data.utils import write_json, write_jsonl
 
 
 @dataclass(frozen=True)
-class TechQAExample:
+class BenchmarkExample:
     id: str
     question: str
     answer: str | None
     original_split: str
     answerable: bool
+
+
+TechQAExample = BenchmarkExample  # Historical import used by the TechQA pipeline/tests.
 
 
 @dataclass

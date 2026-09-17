@@ -64,7 +64,7 @@ class DexSetupTests(unittest.TestCase):
             settings = {"train_dataset": "train.jsonl", "validation_dataset": "validation.jsonl"}
             manifest = {"audit": {"passed": True}, "source_revision": "test",
                         "train_sha256": file_sha256(root / "train.jsonl"),
-                        "validation_sha256": file_sha256(root / "validation.jsonl")}
+                        "original_validation_sha256": file_sha256(root / "validation.jsonl")}
             (root / "manifest.json").write_text(json.dumps(manifest))
             self.assertEqual(dataset_provenance(root, settings, "dex")["source_revision"], "test")
             (root / "train.jsonl").write_text("changed")

@@ -542,7 +542,10 @@ def run(root: Path, *, skip_download: bool = False, settings: Settings = Setting
         **stats,
     }
     write_json(output / "manifest.json", manifest)
-    return manifest
+    from data.split_dex_validation import run as split_dex_validation
+
+    split_dex_validation(root)
+    return json.loads((output / "manifest.json").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

@@ -10,8 +10,13 @@ EXPERIMENTS = {
     "v1": {"train_dataset": TRAIN_DATASET, "validation_dataset": VALIDATION_DATASET, "output_dir": OUTPUT_DIR},
     "dex": {
         "train_dataset": "data/processed/finetune_v2/train.jsonl",
-        "validation_dataset": "data/processed/finetune_v2/validation.jsonl",
+        "validation_dataset": "data/processed/finetune_v2/validation_original_3000.jsonl",
         "output_dir": "models/qwen3.5-9b-it-support-dex-qlora",
+    },
+    "dex_v2": {
+        "train_dataset": "data/processed/finetune_v2/train.jsonl",
+        "validation_dataset": "data/processed/finetune_v2/validation.jsonl",
+        "output_dir": "models/qwen3.5-9b-it-support-dex-v2-qlora",
     },
 }
 
@@ -59,7 +64,7 @@ LORA_TARGET_MODULES = (
 )
 
 
-def as_dict(experiment: str = "v1") -> dict:
+def as_dict(experiment: str = "dex_v2") -> dict:
     if experiment not in EXPERIMENTS:
         raise ValueError(f"Unknown training experiment: {experiment}")
     return {

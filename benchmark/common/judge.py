@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 
 from benchmark.common.config import JUDGE_RETRY_MAX_NEW_TOKENS, JUDGE_SYSTEM_PROMPT, JUDGE_USER_TEMPLATE
-from benchmark.common.schemas import TechQAExample
+from benchmark.common.schemas import BenchmarkExample
 
 
 @dataclass(frozen=True)
@@ -18,7 +18,7 @@ class JudgeDecision:
 _PARTIAL_SCORE = re.compile(r'^\s*\{\s*"score"\s*:\s*([0-4])\s*,\s*"reason"\s*:\s*"')
 
 
-def build_judge_messages(example: TechQAExample, generated_answer: str) -> list[dict[str, str]]:
+def build_judge_messages(example: BenchmarkExample, generated_answer: str) -> list[dict[str, str]]:
     user_prompt = JUDGE_USER_TEMPLATE.format(
         question=example.question,
         reference_status="answerable" if example.answerable else "unanswerable",

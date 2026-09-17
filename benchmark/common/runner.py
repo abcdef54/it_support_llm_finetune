@@ -27,7 +27,7 @@ from benchmark.common.config import (
     JUDGE_USER_TEMPLATE,
     TECHQA_SHA256,
 )
-from benchmark.common.dataset import load_techqa
+from benchmark.common.dataset import load_general_it, load_techqa
 from benchmark.common.generation import batches
 from benchmark.common.judge import JudgeDecision, build_judge_messages, parse_or_retry_judge_output
 from benchmark.common.metrics import aggregate_metrics, bertscore_f1, is_abstention, rouge_l_f1
@@ -67,8 +67,19 @@ def run_benchmark(
         label = "Base" if reuse_answer_as_judge else "Fine-tuned"
         raise FileExistsError(f"{label} benchmark output already exists; pass --overwrite to replace it")
 
-    examples = load_techqa(dataset_path)
-    fingerprint = hashlib.sha256(json.dumps({
+    dataset_kind = getattr(settings, "DATASET_KIND", "techqa")
+    if dataset_kind == "general_it":
+        manifest = json.loads((project_root / settings.DATASET_MANIFEST_PATH).read_text(encoding="utf-8"))
+        if manifest["benchmark_path"] != settings.DATASET_PATH or manifest["benchmark_count"] != 1000:
+            raise ValueError("General-IT benchmark path or count differs from the approved layout")
+        benchmark_sha256 = manifest["benchmark_sha256"]
+        examples = load_general_it(dataset_path, expected_sha256=benchmark_sha256)
+    elif dataset_kind == "techqa":
+        examples = load_techqa(dataset_path)
+        benchmark_sha256 = TECHQA_SHA256
+    else:
+        raise ValueError(f"Unknown benchmark dataset kind: {dataset_kind}")
+    fingerprint_data = {
         "examples": [asdict(example) for example in examples],
         "settings": {name: getattr(settings, name) for name in dir(settings) if name.isupper()},
         "judge": [JUDGE_MODEL_ID, JUDGE_MODEL_REVISION, JUDGE_MAX_NEW_TOKENS,
@@ -76,7 +87,10 @@ def run_benchmark(
         "bertscore": [BERTSCORE_MODEL, BERTSCORE_NUM_LAYERS, BERTSCORE_BATCH_SIZE,
                       BERTSCORE_LANGUAGE, BERTSCORE_IDF, BERTSCORE_RESCALE_WITH_BASELINE],
         "extra_metadata": extra_metadata,
-    }, sort_keys=True).encode("utf-8")).hexdigest()
+    }
+    if dataset_kind == "general_it":
+        fingerprint_data["benchmark_sha256"] = benchmark_sha256
+    fingerprint = hashlib.sha256(json.dumps(fingerprint_data, sort_keys=True).encode("utf-8")).hexdigest()
     checkpoint = Checkpoint(predictions_path.parent / "progress.sqlite3", fingerprint, resume=resume)
 
     active_model = None
@@ -131,7 +145,7 @@ def run_benchmark(
                 try:
                     decision, retried = parse_or_retry_judge_output(active_model, judge_message, raw_decision)
                 except ValueError as exc:
-                    raise ValueError(f"Invalid judge response for TechQA {example.id}: {exc}") from exc
+                    raise ValueError(f"Invalid judge response for benchmark item {example.id}: {exc}") from exc
                 judge_retries += retried
                 decisions.append(decision)
                 completed_batch.append({"decision": asdict(decision), "retried": retried})
@@ -177,7 +191,8 @@ def run_benchmark(
     summary = aggregate_metrics(results)
     summary["judge_retries"] = judge_retries
     summary["judge_recovered_scores"] = sum(decision.recovered for decision in decisions)
-    summary["benchmark"] = {"path": settings.DATASET_PATH, "sha256": TECHQA_SHA256}
+    summary["benchmark"] = {"path": settings.DATASET_PATH, "sha256": benchmark_sha256,
+                            "examples": len(examples)}
     summary["configuration"] = {
         "base_model": settings.BASE_MODEL_ID,
         "base_model_revision": settings.BASE_MODEL_REVISION,

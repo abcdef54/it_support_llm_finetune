@@ -32,7 +32,7 @@
   "candidate_count_before_selection": 56213,
   "final_selected_count": 30000,
   "train_count": 27000,
-  "validation_count": 3000,
+  "validation_count": 2000,
   "topic_distribution_candidates": {
     "cloud_servers": 9145,
     "databases": 1148,
@@ -339,5 +339,74 @@
     "We will provide": 0,
     "follow-up email": 0
   },
-  "large_removal_rules_for_review": {}
+  "large_removal_rules_for_review": {},
+  "original_validation_count": 3000,
+  "original_validation_sha256": "f046451381792a0be7715830ba233a073ac8db90667005c8f042b92efec4fa3d",
+  "validation_sha256": "de1d042e9d2680cc1cf7a7b5cd26671a4f83ac314813b218693b51e389e8971d",
+  "benchmark_count": 1000,
+  "benchmark_path": "data/processed/benchmark/dex_general_it_benchmark.jsonl",
+  "benchmark_sha256": "0823248e32ad622a14ab6f36fc1fb3f21f1d1c30e028dc8b7c00a35ba051cbe1",
+  "split_seed": 42,
+  "split_method": "Proportional keyword-topic stratification; seeded shuffle within topic, largest remainder for quotas",
+  "split_topic_distribution": {
+    "validation": {
+      "cloud_servers": 159,
+      "databases": 90,
+      "developer_tools": 61,
+      "email_outlook": 162,
+      "enterprise_apps": 111,
+      "hardware_drivers": 185,
+      "linux": 12,
+      "network_vpn": 181,
+      "office": 86,
+      "other_it": 156,
+      "performance": 65,
+      "recovery_storage": 121,
+      "security_identity": 162,
+      "software": 154,
+      "teams": 135,
+      "windows": 160
+    },
+    "benchmark": {
+      "cloud_servers": 80,
+      "databases": 45,
+      "developer_tools": 31,
+      "email_outlook": 81,
+      "enterprise_apps": 56,
+      "hardware_drivers": 92,
+      "linux": 6,
+      "network_vpn": 90,
+      "office": 43,
+      "other_it": 78,
+      "performance": 33,
+      "recovery_storage": 60,
+      "security_identity": 81,
+      "software": 77,
+      "teams": 67,
+      "windows": 80
+    }
+  },
+  "split_overlap_checks": {
+    "train_validation": {
+      "prompt": 0,
+      "conversation": 0
+    },
+    "train_benchmark": {
+      "prompt": 0,
+      "conversation": 0
+    },
+    "validation_benchmark": {
+      "prompt": 0,
+      "conversation": 0
+    }
+  },
+  "original_processed_layout": {
+    "train": 27000,
+    "validation": 3000
+  },
+  "revised_evaluation_layout": {
+    "train": 27000,
+    "validation": 2000,
+    "benchmark": 1000
+  }
 }

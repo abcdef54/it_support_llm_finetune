@@ -26,12 +26,22 @@ PREDICTIONS_PATH = "results/finetuned/predictions.jsonl"
 METRICS_PATH = "results/finetuned/metrics.json"
 
 
-def for_experiment(experiment: str = "v1") -> SimpleNamespace:
-    if experiment not in {"v1", "dex"}:
+def for_experiment(experiment: str = "dex_v2") -> SimpleNamespace:
+    if experiment not in {"v1", "dex", "dex_v2"}:
         raise ValueError(f"Unknown fine-tuned benchmark experiment: {experiment}")
     values = {name: value for name, value in globals().items() if name.isupper()}
     if experiment == "dex":
         values.update(ADAPTER_PATH="models/qwen3.5-9b-it-support-dex-qlora",
                       PREDICTIONS_PATH="results/finetuned_dex/predictions.jsonl",
                       METRICS_PATH="results/finetuned_dex/metrics.json")
+    if experiment == "dex_v2":
+        general = baseline.for_benchmark("general_it")
+        values.update(
+            DATASET_KIND=general.DATASET_KIND,
+            DATASET_PATH=general.DATASET_PATH,
+            DATASET_MANIFEST_PATH=general.DATASET_MANIFEST_PATH,
+            ADAPTER_PATH="models/qwen3.5-9b-it-support-dex-v2-qlora",
+            PREDICTIONS_PATH="results/finetuned_dex_v2/predictions.jsonl",
+            METRICS_PATH="results/finetuned_dex_v2/metrics.json",
+        )
     return SimpleNamespace(**values)

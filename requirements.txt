@@ -9,3 +9,5 @@ huggingface_hub
 python-dotenv
 tqdm
 bert-score==0.3.13
+flash-linear-attention>=0.4.2
+causal-conv1d

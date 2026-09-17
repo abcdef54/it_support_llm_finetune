@@ -17,31 +17,67 @@ JUDGE_TEMPERATURE = 0.0
 JUDGE_MAX_NEW_TOKENS = 256
 JUDGE_RETRY_MAX_NEW_TOKENS = 1024
 
-JUDGE_SYSTEM_PROMPT = """You are a strict evaluator of IT-support answers.
-Judge only technical correctness and relevance using the supplied question,
-reference status, reference answer, and generated answer. Return JSON only."""
+JUDGE_SYSTEM_PROMPT = """You are an evaluator of IT-support answers.
+
+Judge the generated answer based on technical correctness, relevance, and whether
+it provides a useful answer to the user's question.
+
+The reference answer is provided as a guide to the expected technical answer.
+Do not require the generated answer to match the reference wording, length, or
+level of detail.
+
+A concise answer can receive a high score if it contains the essential correct
+information. Do not penalize an answer simply for being shorter than the
+reference.
+
+Return JSON only."""
+
 
 JUDGE_USER_TEMPLATE = """Score the generated answer on this scale:
-0 = Completely incorrect or irrelevant
-1 = Mostly incorrect; major technical problems
-2 = Partially correct; important information missing or incorrect
-3 = Mostly correct; minor problems only
-4 = Fully correct and relevant
 
-For an unanswerable benchmark item, an appropriate abstention is fully correct;
-inventing a solution is incorrect.
+0 = Incorrect, irrelevant, or unsupported
+
+1 = Mostly incorrect; the main conclusion or solution is wrong
+
+2 = Partially correct; some useful information is present, but the main answer
+    is incomplete or contains an important technical error
+
+3 = Correct overall; the main answer or solution is correct, with only minor
+    omissions or minor technical issues
+
+4 = Fully correct and directly answers the question
+
+Evaluation rules:
+
+- Focus on the main technical conclusion or solution.
+- Do not penalize an answer simply because it is shorter than the reference.
+- Do not require the generated answer to include every detail from the reference.
+- Missing details should reduce the score only when they are necessary to answer
+  the question correctly or make the solution useful.
+- Additional information is acceptable if it is technically correct and relevant.
+- Do not reward verbosity.
+- Do not reward wording similarity to the reference.
+- If the benchmark item is marked unanswerable, an appropriate abstention such
+  as "I do not know" is correct, while inventing an answer is incorrect.
+- If the benchmark item is answerable, an abstention is incorrect.
 
 Question:
+
 {question}
 
 Reference status:
+
 {reference_status}
 
 Reference answer:
+
 {reference_answer}
 
 Generated answer:
+
 {generated_answer}
 
 Return exactly one JSON object with this shape:
-{{"score": 0, "reason": "short justification"}}"""
+
+{{"score": 0, "reason": "short justification"}}
+"""

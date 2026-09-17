@@ -161,7 +161,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.common.runner.load_techqa", return_value=examples),
             patch("benchmark.common.runner.bertscore_f1", return_value=[0.0] * len(examples)),
         ):
-            summary = run(Path(directory))
+            summary = run(Path(directory), experiment="v1")
             predictions = [json.loads(line) for line in (Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()]
             self.assertFalse((Path(directory) / baseline.PREDICTIONS_PATH).exists())
 
@@ -201,7 +201,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.common.runner.load_techqa", return_value=[example]),
             patch("benchmark.common.runner.bertscore_f1", return_value=[0.0]),
         ):
-            summary = run(Path(directory))
+            summary = run(Path(directory), experiment="v1")
             prediction = json.loads((Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()[0])
         self.assertEqual(summary["judge_retries"], 1)
         self.assertEqual(summary["configuration"]["judge_retry_max_new_tokens"], JUDGE_RETRY_MAX_NEW_TOKENS)
@@ -247,7 +247,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.common.runner.load_techqa", return_value=[example]),
             patch("benchmark.common.runner.bertscore_f1", return_value=[0.0]),
         ):
-            summary = run(Path(directory))
+            summary = run(Path(directory), experiment="v1")
             prediction = json.loads((Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()[0])
         self.assertEqual(summary["judge_recovered_scores"], 1)
         self.assertEqual(summary["judge_retries"], 1)
@@ -286,15 +286,15 @@ class FineTunedBenchmarkTests(unittest.TestCase):
         ):
             root = Path(directory)
             with self.assertRaisesRegex(RuntimeError, "interrupted"):
-                run_baseline(root)
+                run_baseline(root, benchmark="techqa")
             progress = root / "results/base/progress.sqlite3"
             self.assertTrue(progress.exists())
             with self.assertRaises(FileExistsError):
-                run_baseline(root)
+                run_baseline(root, benchmark="techqa")
             with patch("benchmark.common.runner.load_techqa", return_value=list(reversed(examples))):
                 with self.assertRaisesRegex(ValueError, "changed"):
-                    run_baseline(root, resume=True)
-            summary = run_baseline(root, resume=True)
+                    run_baseline(root, resume=True, benchmark="techqa")
+            summary = run_baseline(root, resume=True, benchmark="techqa")
             self.assertEqual((fake.answer_calls, fake.judge_calls), (1, 4))
             self.assertEqual(summary["total_examples"], 3)
             self.assertFalse(progress.exists())
@@ -313,13 +313,13 @@ class FineTunedBenchmarkTests(unittest.TestCase):
         ):
             root = Path(directory)
             with self.assertRaisesRegex(RuntimeError, "metric failed"):
-                run_baseline(root)
+                run_baseline(root, benchmark="techqa")
             self.assertTrue((root / "results/base/progress.sqlite3").exists())
             load_model.reset_mock()
             load_model.side_effect = AssertionError("Qwen should not reload")
             score.side_effect = None
             score.return_value = [0.75]
-            summary = run_baseline(root, resume=True)
+            summary = run_baseline(root, resume=True, benchmark="techqa")
             load_model.assert_not_called()
             self.assertEqual(summary["total_examples"], 1)
             self.assertFalse((root / "results/base/progress.sqlite3").exists())
@@ -347,7 +347,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.finetuned.run_benchmark.QwenGenerator.load", return_value=judge) as load_judge,
             patch("benchmark.common.runner.load_techqa", side_effect=AssertionError("TechQA must not be read")),
         ):
-            result = smoke(Path(directory))
+            result = smoke(Path(directory), experiment="v1")
             self.assertFalse((Path(directory) / "results").exists())
         self.assertEqual(result["synthetic_answers"], config.ANSWER_BATCH_SIZE)
         self.assertEqual(len(answer.calls[0][0]), 16)
