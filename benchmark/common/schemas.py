@@ -22,6 +22,7 @@ class ExampleMetrics:
     judge_score: int
     judge_reason: str
     abstained: bool
+    judge_recovered: bool = False
 
 
 @dataclass

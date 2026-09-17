@@ -9,7 +9,7 @@ from benchmark.common.config import JUDGE_MODEL_ID, JUDGE_MODEL_REVISION
 from benchmark.common.runner import _set_seed, run_benchmark
 
 
-def run(project_root: Path, overwrite: bool = False) -> dict:
+def run(project_root: Path, overwrite: bool = False, resume: bool = False) -> dict:
     return run_benchmark(
         project_root,
         settings=config,
@@ -17,6 +17,7 @@ def run(project_root: Path, overwrite: bool = False) -> dict:
         load_judge_model=lambda: QwenGenerator.load(JUDGE_MODEL_ID, JUDGE_MODEL_REVISION),
         reuse_answer_as_judge=(config.BASE_MODEL_ID, config.BASE_MODEL_REVISION) == (JUDGE_MODEL_ID, JUDGE_MODEL_REVISION),
         overwrite=overwrite,
+        resume=resume,
     )
 
 
@@ -24,5 +25,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the complete base-model TechQA benchmark.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
     args = parser.parse_args()
-    print(run(args.project_root.resolve(), overwrite=args.overwrite))
+    print(run(args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume))

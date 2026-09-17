@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import random
+from dataclasses import asdict
 from pathlib import Path
 from types import ModuleType
 from typing import Callable
 
 from tqdm import tqdm
 
+from benchmark.common.checkpoint import Checkpoint
 from benchmark.common.config import (
     BERTSCORE_BATCH_SIZE,
     BERTSCORE_IDF,
@@ -26,7 +29,7 @@ from benchmark.common.config import (
 )
 from benchmark.common.dataset import load_techqa
 from benchmark.common.generation import batches
-from benchmark.common.judge import build_judge_messages, parse_or_retry_judge_output
+from benchmark.common.judge import JudgeDecision, build_judge_messages, parse_or_retry_judge_output
 from benchmark.common.metrics import aggregate_metrics, bertscore_f1, is_abstention, rouge_l_f1
 from benchmark.common.schemas import ExampleMetrics, ExampleResult, write_results
 
@@ -48,6 +51,7 @@ def run_benchmark(
     load_judge_model: Callable,
     reuse_answer_as_judge: bool,
     overwrite: bool = False,
+    resume: bool = False,
     extra_metadata: dict | None = None,
 ) -> dict:
     if settings.ANSWER_BATCH_SIZE < 1 or settings.JUDGE_BATCH_SIZE < 1:
@@ -64,14 +68,28 @@ def run_benchmark(
         raise FileExistsError(f"{label} benchmark output already exists; pass --overwrite to replace it")
 
     examples = load_techqa(dataset_path)
-    _set_seed(settings.RANDOM_SEED)
+    fingerprint = hashlib.sha256(json.dumps({
+        "examples": [asdict(example) for example in examples],
+        "settings": {name: getattr(settings, name) for name in dir(settings) if name.isupper()},
+        "judge": [JUDGE_MODEL_ID, JUDGE_MODEL_REVISION, JUDGE_MAX_NEW_TOKENS,
+                  JUDGE_RETRY_MAX_NEW_TOKENS, JUDGE_SYSTEM_PROMPT, JUDGE_USER_TEMPLATE],
+        "bertscore": [BERTSCORE_MODEL, BERTSCORE_NUM_LAYERS, BERTSCORE_BATCH_SIZE,
+                      BERTSCORE_LANGUAGE, BERTSCORE_IDF, BERTSCORE_RESCALE_WITH_BASELINE],
+        "extra_metadata": extra_metadata,
+    }, sort_keys=True).encode("utf-8")).hexdigest()
+    checkpoint = Checkpoint(predictions_path.parent / "progress.sqlite3", fingerprint, resume=resume)
 
-    active_model = load_answer_model()
+    active_model = None
     try:
-        generated_answers = []
+        _set_seed(settings.RANDOM_SEED)
+        generated_answers = checkpoint.load("answer")
+        if len(generated_answers) > len(examples) or any(not isinstance(answer, str) for answer in generated_answers):
+            raise ValueError("Checkpoint contains invalid answers")
+        if len(generated_answers) < len(examples):
+            active_model = load_answer_model()
         for batch in tqdm(
-            batches(examples, settings.ANSWER_BATCH_SIZE),
-            total=(len(examples) + settings.ANSWER_BATCH_SIZE - 1) // settings.ANSWER_BATCH_SIZE,
+            batches(examples[len(generated_answers):], settings.ANSWER_BATCH_SIZE),
+            total=(len(examples) - len(generated_answers) + settings.ANSWER_BATCH_SIZE - 1) // settings.ANSWER_BATCH_SIZE,
             desc="Generating baseline answers" if reuse_answer_as_judge else "Generating fine-tuned answers",
         ):
             messages = [
@@ -81,23 +99,34 @@ def run_benchmark(
                 ]
                 for example in batch
             ]
-            generated_answers.extend(active_model.generate_batch(messages, settings.MAX_NEW_TOKENS))
+            answers = active_model.generate_batch(messages, settings.MAX_NEW_TOKENS)
+            if len(answers) != len(batch) or any(not isinstance(answer, str) for answer in answers):
+                raise ValueError("Answer model returned an unexpected batch")
+            checkpoint.save("answer", len(generated_answers), answers)
+            generated_answers.extend(answers)
 
-        if not reuse_answer_as_judge:
+        if active_model is not None and not reuse_answer_as_judge:
             active_model.close()
             active_model = None
+        if active_model is None:
             active_model = load_judge_model()
 
-        decisions = []
-        judge_retries = 0
+        saved_decisions = checkpoint.load("judge")
+        if len(saved_decisions) > len(examples):
+            raise ValueError("Checkpoint contains too many judgments")
+        decisions = [JudgeDecision(**row["decision"]) for row in saved_decisions]
+        judge_retries = sum(row["retried"] for row in saved_decisions)
         pairs = list(zip(examples, generated_answers, strict=True))
         for batch in tqdm(
-            batches(pairs, settings.JUDGE_BATCH_SIZE),
-            total=(len(pairs) + settings.JUDGE_BATCH_SIZE - 1) // settings.JUDGE_BATCH_SIZE,
+            batches(pairs[len(decisions):], settings.JUDGE_BATCH_SIZE),
+            total=(len(pairs) - len(decisions) + settings.JUDGE_BATCH_SIZE - 1) // settings.JUDGE_BATCH_SIZE,
             desc="Judging answers",
         ):
             judge_messages = [build_judge_messages(example, answer) for example, answer in batch]
             raw_decisions = active_model.generate_batch(judge_messages, JUDGE_MAX_NEW_TOKENS)
+            if len(raw_decisions) != len(batch):
+                raise ValueError("Judge returned an unexpected batch")
+            completed_batch = []
             for (example, _), judge_message, raw_decision in zip(batch, judge_messages, raw_decisions, strict=True):
                 try:
                     decision, retried = parse_or_retry_judge_output(active_model, judge_message, raw_decision)
@@ -105,9 +134,14 @@ def run_benchmark(
                     raise ValueError(f"Invalid judge response for TechQA {example.id}: {exc}") from exc
                 judge_retries += retried
                 decisions.append(decision)
+                completed_batch.append({"decision": asdict(decision), "retried": retried})
+            checkpoint.save("judge", len(decisions) - len(completed_batch), completed_batch)
     finally:
-        if active_model is not None:
-            active_model.close()
+        try:
+            if active_model is not None:
+                active_model.close()
+        finally:
+            checkpoint.close()
 
     references = [example.answer or "" for example in examples]
     semantic_scores = bertscore_f1(
@@ -133,6 +167,7 @@ def run_benchmark(
                 judge_score=decision.score,
                 judge_reason=decision.reason,
                 abstained=is_abstention(generated_answer),
+                judge_recovered=decision.recovered,
             ),
         )
         for example, generated_answer, semantic_score, decision in zip(
@@ -141,6 +176,7 @@ def run_benchmark(
     ]
     summary = aggregate_metrics(results)
     summary["judge_retries"] = judge_retries
+    summary["judge_recovered_scores"] = sum(decision.recovered for decision in decisions)
     summary["benchmark"] = {"path": settings.DATASET_PATH, "sha256": TECHQA_SHA256}
     summary["configuration"] = {
         "base_model": settings.BASE_MODEL_ID,
@@ -172,4 +208,5 @@ def run_benchmark(
     if extra_metadata:
         summary.update(extra_metadata)
     write_results(predictions_path, metrics_path, results, summary)
+    checkpoint.path.unlink()
     return summary

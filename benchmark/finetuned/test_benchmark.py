@@ -197,6 +197,88 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             parse_or_retry_judge_output(judge, [{"role": "user", "content": "Judge this"}], "not JSON")
         self.assertEqual(judge.generate_batch.call_args.args[1], JUDGE_RETRY_MAX_NEW_TOKENS)
 
+    def test_incomplete_explanation_recovers_only_matching_scores(self):
+        first = '{"score": 2, "reason": "The answer partly works but ' + "loops " * 100
+        retry = '{"score": 2, "reason": "Different wording, still ' + "loops " * 400
+        judge = MagicMock()
+        judge.generate_batch.return_value = [retry]
+        decision, retried = parse_or_retry_judge_output(judge, [{"role": "user", "content": "Judge"}], first)
+        self.assertEqual(decision.score, 2)
+        self.assertTrue(decision.recovered and retried)
+        self.assertIn("incomplete", decision.reason)
+        judge.generate_batch.return_value = [retry.replace('"score": 2', '"score": 3')]
+        with self.assertRaises(ValueError):
+            parse_or_retry_judge_output(judge, [{"role": "user", "content": "Judge"}], first)
+
+    def test_recovered_score_is_visible_in_prediction_and_summary(self):
+        example = TechQAExample("id-0", "Q0", "reference", "dev", True)
+        answer = MagicMock()
+        answer.generate_batch.return_value = ["answer"]
+        judge = MagicMock()
+        judge.generate_batch.side_effect = [
+            ['{"score": 2, "reason": "unfinished'],
+            ['{"score": 2, "reason": "still unfinished'],
+        ]
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("benchmark.finetuned.run_benchmark.inspect_adapter", return_value={"configuration": {"r": 32}}),
+            patch("benchmark.finetuned.run_benchmark.load_finetuned_generator", return_value=answer),
+            patch("benchmark.finetuned.run_benchmark.QwenGenerator.load", return_value=judge),
+            patch("benchmark.common.runner.load_techqa", return_value=[example]),
+            patch("benchmark.common.runner.bertscore_f1", return_value=[0.0]),
+        ):
+            summary = run(Path(directory))
+            prediction = json.loads((Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()[0])
+        self.assertEqual(summary["judge_recovered_scores"], 1)
+        self.assertEqual(summary["judge_retries"], 1)
+        self.assertEqual(prediction["metrics"]["judge_score"], 2)
+        self.assertTrue(prediction["metrics"]["judge_recovered"])
+
+    def test_resume_skips_saved_answers_and_judgments(self):
+        from benchmark.baseline.run_benchmark import run as run_baseline
+
+        examples = [TechQAExample(f"id-{i}", f"Q{i}", "reference", "dev", True) for i in range(3)]
+        class FakeGenerator:
+            def __init__(self):
+                self.fail_once = True
+                self.answer_calls = 0
+                self.judge_calls = 0
+
+            def generate_batch(self, messages, limit):
+                if limit == baseline.MAX_NEW_TOKENS:
+                    self.answer_calls += 1
+                    return ["answer"] * len(messages)
+                self.judge_calls += 1
+                if self.judge_calls == 2 and self.fail_once:
+                    self.fail_once = False
+                    raise RuntimeError("interrupted")
+                return ['{"score": 2, "reason": "checked"}'] * len(messages)
+
+            def close(self):
+                pass
+
+        fake = FakeGenerator()
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("benchmark.common.runner.load_techqa", return_value=examples),
+            patch("benchmark.baseline.run_benchmark.QwenGenerator.load", return_value=fake),
+            patch("benchmark.common.runner.bertscore_f1", return_value=[0.0] * len(examples)),
+        ):
+            root = Path(directory)
+            with self.assertRaisesRegex(RuntimeError, "interrupted"):
+                run_baseline(root)
+            progress = root / "results/base/progress.sqlite3"
+            self.assertTrue(progress.exists())
+            with self.assertRaises(FileExistsError):
+                run_baseline(root)
+            with patch("benchmark.common.runner.load_techqa", return_value=list(reversed(examples))):
+                with self.assertRaisesRegex(ValueError, "changed"):
+                    run_baseline(root, resume=True)
+            summary = run_baseline(root, resume=True)
+            self.assertEqual((fake.answer_calls, fake.judge_calls), (1, 4))
+            self.assertEqual(summary["total_examples"], 3)
+            self.assertFalse(progress.exists())
+
     def test_synthetic_smoke_keeps_techqa_and_results_untouched(self):
         class FakeGenerator:
             def __init__(self, response):

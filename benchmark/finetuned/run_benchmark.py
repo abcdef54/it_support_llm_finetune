@@ -13,7 +13,7 @@ from benchmark.finetuned import config
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
 
 
-def run(project_root: Path, overwrite: bool = False) -> dict:
+def run(project_root: Path, overwrite: bool = False, resume: bool = False) -> dict:
     adapter_path = project_root / config.ADAPTER_PATH
     adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION)
     return run_benchmark(
@@ -26,6 +26,7 @@ def run(project_root: Path, overwrite: bool = False) -> dict:
         load_judge_model=lambda: QwenGenerator.load(JUDGE_MODEL_ID, JUDGE_MODEL_REVISION),
         reuse_answer_as_judge=False,
         overwrite=overwrite,
+        resume=resume,
         extra_metadata={
             "adapter": {**adapter, "path": config.ADAPTER_PATH, "autocast_adapter_dtype": config.ADAPTER_AUTOCAST_DTYPE},
             "library_versions": {
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the fine-tuned, no-RAG TechQA benchmark.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
     parser.add_argument("--smoke", action="store_true", help="Run a synthetic GPU smoke test without TechQA or result files")
     args = parser.parse_args()
-    print(smoke(args.project_root.resolve()) if args.smoke else run(args.project_root.resolve(), overwrite=args.overwrite))
+    print(smoke(args.project_root.resolve()) if args.smoke else run(args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume))

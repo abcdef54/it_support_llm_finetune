@@ -12,6 +12,10 @@ from benchmark.common.schemas import TechQAExample
 class JudgeDecision:
     score: int
     reason: str
+    recovered: bool = False
+
+
+_PARTIAL_SCORE = re.compile(r'^\s*\{\s*"score"\s*:\s*([0-4])\s*,\s*"reason"\s*:\s*"')
 
 
 def build_judge_messages(example: TechQAExample, generated_answer: str) -> list[dict[str, str]]:
@@ -55,4 +59,12 @@ def parse_or_retry_judge_output(model, messages: list[dict[str, str]], output: s
         try:
             return parse_judge_output(retry_outputs[0]), True
         except ValueError as exc:
+            first_score = _PARTIAL_SCORE.match(output)
+            retry_score = _PARTIAL_SCORE.match(retry_outputs[0])
+            if first_score and retry_score and first_score.group(1) == retry_score.group(1):
+                return JudgeDecision(
+                    int(first_score.group(1)),
+                    "Judge explanation incomplete; score recovered from matching initial and retry outputs.",
+                    recovered=True,
+                ), True
             raise ValueError(f"Judge retry at {JUDGE_RETRY_MAX_NEW_TOKENS} tokens was invalid: {exc}") from exc
