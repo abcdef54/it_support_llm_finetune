@@ -1,6 +1,7 @@
 # IT Support LLM Fine-Tuning
 
-The project includes dataset preparation and the baseline benchmark pipeline.
+The project includes dataset preparation, QLoRA fine-tuning setup, and baseline
+and fine-tuned benchmark pipelines.
 
 ## Prepare the datasets
 
@@ -33,6 +34,50 @@ data/processed/
 All usable labeled TechQA examples from its original train and development
 splits are combined into one benchmark-only file. The original split is retained
 only as metadata. TechQA is never used for training, tuning, or RAG indexing.
+
+## DEX fine-tuning data (V2)
+
+The DEX (Diagnostic EXpert) experiment uses the pinned
+`benjaminmacklin/IT_Support_V2` source. The preparation command downloads the
+source through Hugging Face `datasets`, inspects its schema, filters and
+deduplicates it, then writes 30,000 selected examples (27,000 train and 3,000
+validation). It uses the Qwen tokenizer for length checks but does not load
+model weights or start training:
+
+```bash
+.venv/bin/python -m data.preprocess_finetune_v2 --project-root .
+```
+
+On a machine with the pinned source and tokenizer already cached under
+`data/raw/finetune_v2/`, use `--skip-download` to regenerate the same output
+offline. The generated files are under `data/processed/finetune_v2/`:
+`train.jsonl`, `validation.jsonl`, `manifest.json`, `filter_stats.json`,
+`source_inspection.json`, `audit_sample.jsonl`, `rejected_sample.jsonl`, and
+`SOURCE_LICENSE.txt`. Review the 100-record audit sample before spending GPU
+time; deterministic filtering cannot certify the factual accuracy of every
+synthetic troubleshooting answer. TechQA is used only for an exact-overlap
+firewall, never to choose or tune training examples.
+
+Validate the prepared data and configuration without loading Qwen:
+
+```bash
+.venv/bin/python -m finetune.train --project-root . --experiment dex --check
+.venv/bin/python -m unittest data.test_finetune_v2 finetune.test_dex -q
+```
+
+When separately authorized and on a suitable GPU, the DEX training command is:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m finetune.train --project-root . --experiment dex
+```
+
+It writes a **new** adapter directory at
+`models/qwen3.5-9b-it-support-dex-qlora/`; V1 data and the existing
+`models/qwen3.5-9b-it-support-qlora/` adapter are preserved. The existing QLoRA
+hyperparameters are unchanged. Use `--experiment v1` to select V1 explicitly.
+Training evaluates validation loss at each configured save interval, restores
+the lowest-loss checkpoint at the end, and saves that adapter as the final
+artifact. The selected checkpoint and loss are recorded in `run_metadata.json`.
 
 ## Baseline benchmark batching
 
@@ -120,3 +165,10 @@ It writes `results/finetuned/predictions.jsonl` and
 `results/finetuned/metrics.json` without replacing `results/base/`. Existing
 fine-tuned results are protected unless `--overwrite` is supplied. Do not mix
 results from different batch-size settings in a controlled comparison.
+
+After DEX training is complete, choose its adapter with `--experiment dex` on
+the same fine-tuned benchmark command (or synthetic `--smoke` check). DEX writes
+to `results/finetuned_dex/` and leaves V1 results untouched. The TechQA data,
+BF16 base checkpoint, answer-generation settings, base-model judge, prompts,
+metrics, and resume behavior remain shared and unchanged. Do not run the DEX
+benchmark until its adapter exists.
