@@ -5,12 +5,14 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from benchmark.baseline import config as baseline
 from benchmark.baseline.model import QwenGenerator
 from benchmark.common.config import JUDGE_MAX_NEW_TOKENS, JUDGE_MODEL_ID, JUDGE_MODEL_REVISION, JUDGE_RETRY_MAX_NEW_TOKENS
 from benchmark.common.judge import parse_or_retry_judge_output
+from benchmark.common.metrics import bertscore_f1
 from benchmark.common.schemas import TechQAExample
 from benchmark.finetuned import config
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
@@ -18,6 +20,25 @@ from benchmark.finetuned.run_benchmark import run, smoke
 
 
 class FineTunedBenchmarkTests(unittest.TestCase):
+    def test_bertscore_uses_model_limit_when_tokenizer_limit_is_unknown(self):
+        class FakeScorer:
+            def __init__(self, **kwargs):
+                self._tokenizer = SimpleNamespace(model_max_length=10**30)
+                self._model = SimpleNamespace(config=SimpleNamespace(max_position_embeddings=512))
+
+            def score(self, predictions, references):
+                self_check = self._tokenizer.model_max_length
+                if self_check != 512:
+                    raise AssertionError(f"Expected model limit 512, got {self_check}")
+                return None, None, SimpleNamespace(tolist=lambda: [0.75])
+
+        scores = bertscore_f1(
+            ["prediction"], ["reference"], model_type="microsoft/deberta-large-mnli",
+            num_layers=None, batch_size=8, lang="en", idf=False,
+            rescale_with_baseline=False, scorer_class=FakeScorer,
+        )
+        self.assertEqual(scores, [0.75])
+
     def test_controlled_settings_and_separate_results(self):
         for name in (
             "BASE_MODEL_ID", "BASE_MODEL_REVISION", "MODEL_DTYPE", "GENERATION_MODE",
@@ -278,6 +299,31 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             self.assertEqual((fake.answer_calls, fake.judge_calls), (1, 4))
             self.assertEqual(summary["total_examples"], 3)
             self.assertFalse(progress.exists())
+
+    def test_resume_after_metric_failure_does_not_reload_qwen(self):
+        from benchmark.baseline.run_benchmark import run as run_baseline
+
+        example = TechQAExample("id-0", "Q0", "reference", "dev", True)
+        model = MagicMock()
+        model.generate_batch.side_effect = [["answer"], ['{"score": 4, "reason": "correct"}']]
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("benchmark.common.runner.load_techqa", return_value=[example]),
+            patch("benchmark.baseline.run_benchmark.QwenGenerator.load", return_value=model) as load_model,
+            patch("benchmark.common.runner.bertscore_f1", side_effect=RuntimeError("metric failed")) as score,
+        ):
+            root = Path(directory)
+            with self.assertRaisesRegex(RuntimeError, "metric failed"):
+                run_baseline(root)
+            self.assertTrue((root / "results/base/progress.sqlite3").exists())
+            load_model.reset_mock()
+            load_model.side_effect = AssertionError("Qwen should not reload")
+            score.side_effect = None
+            score.return_value = [0.75]
+            summary = run_baseline(root, resume=True)
+            load_model.assert_not_called()
+            self.assertEqual(summary["total_examples"], 1)
+            self.assertFalse((root / "results/base/progress.sqlite3").exists())
 
     def test_synthetic_smoke_keeps_techqa_and_results_untouched(self):
         class FakeGenerator:

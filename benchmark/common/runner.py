@@ -105,18 +105,18 @@ def run_benchmark(
             checkpoint.save("answer", len(generated_answers), answers)
             generated_answers.extend(answers)
 
-        if active_model is not None and not reuse_answer_as_judge:
-            active_model.close()
-            active_model = None
-        if active_model is None:
-            active_model = load_judge_model()
-
         saved_decisions = checkpoint.load("judge")
         if len(saved_decisions) > len(examples):
             raise ValueError("Checkpoint contains too many judgments")
         decisions = [JudgeDecision(**row["decision"]) for row in saved_decisions]
         judge_retries = sum(row["retried"] for row in saved_decisions)
         pairs = list(zip(examples, generated_answers, strict=True))
+        if len(decisions) < len(pairs):
+            if active_model is not None and not reuse_answer_as_judge:
+                active_model.close()
+                active_model = None
+            if active_model is None:
+                active_model = load_judge_model()
         for batch in tqdm(
             batches(pairs[len(decisions):], settings.JUDGE_BATCH_SIZE),
             total=(len(pairs) - len(decisions) + settings.JUDGE_BATCH_SIZE - 1) // settings.JUDGE_BATCH_SIZE,

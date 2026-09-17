@@ -83,6 +83,9 @@ Progress is saved after every answer batch and judge batch in the variant's
 The progress file is removed after results are written successfully. Runs made
 before this checkpoint change cannot be resumed. If a final output file was
 partially written during a failure, use both `--resume --overwrite` to finish.
+If BERTScore fails after judging, `--resume` skips both Qwen stages and retries
+only metric calculation. BERTScore caps DeBERTa tokenization at the model's
+supported position limit when its tokenizer reports an undefined huge limit.
 
 ## Fine-tuned benchmark (no RAG)
 

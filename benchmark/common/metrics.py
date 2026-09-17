@@ -83,6 +83,18 @@ def bertscore_f1(
         rescale_with_baseline=rescale_with_baseline,
         device=device,
     )
+    # BERTScore uses tokenizer.model_max_length for truncation; some DeBERTa
+    # tokenizers report an enormous "unknown" value instead of the model limit.
+    tokenizer = getattr(scorer, "_tokenizer", None)
+    model_config = getattr(getattr(scorer, "_model", None), "config", None)
+    max_positions = getattr(model_config, "max_position_embeddings", None)
+    if (
+        tokenizer is not None
+        and isinstance(max_positions, int)
+        and max_positions > 0
+        and tokenizer.model_max_length > max_positions
+    ):
+        tokenizer.model_max_length = max_positions
     _, _, scores = scorer.score(
         [predictions[index] for index in comparable],
         [references[index] for index in comparable],
