@@ -14,9 +14,9 @@ JUDGE_BATCH_SIZE = 1
 RANDOM_SEED = 42
 ENABLE_THINKING = False
 
-DATASET_PATH = "data/processed/evaluation/techqa_benchmark.jsonl"
-PREDICTIONS_PATH = "results/base/predictions.jsonl"
-METRICS_PATH = "results/base/metrics.json"
+DATASET_PATH = "data/processed/benchmark/dex_general_it_benchmark.jsonl"
+PREDICTIONS_PATH = "results/base_general_it/predictions.jsonl"
+METRICS_PATH = "results/base_general_it/metrics.json"
 
 ANSWER_SYSTEM_PROMPT = """You are an IT support assistant. Give a concise, technically useful answer.
 If the question cannot be answered reliably from the information given, say that you do not know."""

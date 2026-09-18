@@ -5,15 +5,27 @@ import argparse
 import json
 from pathlib import Path
 
-from benchmark.baseline.config import ANSWER_SYSTEM_PROMPT, MAX_NEW_TOKENS, RANDOM_SEED
+from benchmark.baseline.config import (
+    ANSWER_SYSTEM_PROMPT,
+    BASE_MODEL_ID,
+    BASE_MODEL_REVISION,
+    MAX_NEW_TOKENS,
+    RANDOM_SEED,
+)
 from benchmark.baseline.model import QwenGenerator
 from benchmark.common.runner import _set_seed
 from benchmark.finetuned.config import for_experiment
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
 from rag import config as C
 from rag.context import build_context
-from rag.prepare_benchmark import load_tokenizer
 from rag.retrieve import Retriever
+
+
+def load_tokenizer(root):
+    from transformers import AutoTokenizer
+    cache = root / "data/raw/finetune_v2/tokenizer_cache"
+    return AutoTokenizer.from_pretrained(BASE_MODEL_ID, revision=BASE_MODEL_REVISION,
+                                         cache_dir=str(cache) if cache.exists() else None)
 
 
 def generate(root, question, *, model="dex", rag=True, top_k=C.RAG_TOP_K, device=None):

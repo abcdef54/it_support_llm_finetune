@@ -20,7 +20,7 @@ def run(project_root: Path, overwrite: bool = False, resume: bool = False, exper
     if rag:
         if experiment != "dex_v2":
             raise ValueError("RAG evaluation requires dex_v2 and the held-out general-IT benchmark")
-        from rag.prepare_benchmark import load_artifact
+        from benchmark.common.rag import load_artifact
         rag_records, rag_metadata = load_artifact(project_root)
         config.PREDICTIONS_PATH = "results/finetuned_dex_v2_rag/predictions.jsonl"
         config.METRICS_PATH = "results/finetuned_dex_v2_rag/metrics.json"

@@ -3,7 +3,8 @@
 __pycache__/
 *.pyc
 
-models/
+models/*
+!models/link.txt
 data/raw/
 results/
 
@@ -19,3 +20,5 @@ data/processed/rag/general_it_contexts.json
 # Large reproducible corpus assets; rebuild from the pinned source on each machine.
 data/processed/rag/combined_corpus.jsonl
 data/processed/rag/stackoverflow_it_support.jsonl
+
+archived/

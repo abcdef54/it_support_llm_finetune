@@ -16,7 +16,7 @@ def run(project_root: Path, overwrite: bool = False, resume: bool = False, bench
     if rag:
         if benchmark != "general_it":
             raise ValueError("TechQA is indexed knowledge; use the general_it benchmark with RAG")
-        from rag.prepare_benchmark import load_artifact
+        from benchmark.common.rag import load_artifact
         rag_records, rag_metadata = load_artifact(project_root)
         settings.PREDICTIONS_PATH = "results/base_rag_general_it/predictions.jsonl"
         settings.METRICS_PATH = "results/base_rag_general_it/metrics.json"

@@ -7,7 +7,6 @@ STACKOVERFLOW_RAW = "data/raw/stackoverflow/documents.jsonl"
 MAX_STACKOVERFLOW_RECORDS = 75_000
 MIN_QUESTION_SCORE = 0
 MIN_ANSWER_SCORE = 1
-TECHQA_PATH = "data/processed/evaluation/techqa_benchmark.jsonl"
 BENCHMARK_PATH = "data/processed/benchmark/dex_general_it_benchmark.jsonl"
 BENCHMARK_MANIFEST = "data/processed/benchmark/dex_general_it_manifest.json"
 CORPUS_DIR = "data/processed/rag"

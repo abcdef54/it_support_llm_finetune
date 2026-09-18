@@ -7,11 +7,60 @@ from importlib.metadata import version
 import json
 from pathlib import Path
 
+import re
+
+from benchmark.common.dataset import file_sha256, load_general_it
 from benchmark.common.generation import batches
-from data.utils import write_json
+from data.utils import read_jsonl, write_json
 from rag import config as C
-from rag.build_corpus import validate_corpus
 from rag.embeddings import Embedder
+
+
+def whitespace(value) -> str:
+    return re.sub(r"\n{3,}", "\n\n", str(value or "").replace("\r\n", "\n")).strip()
+
+
+def key(value) -> str:
+    return " ".join(whitespace(value).casefold().split())
+
+
+def benchmark_keys(root):
+    manifest = json.loads((root / C.BENCHMARK_MANIFEST).read_text())
+    examples = load_general_it(root / C.BENCHMARK_PATH, expected_sha256=manifest["benchmark_sha256"])
+    return {key(x.question) for x in examples}, {key(x.answer) for x in examples}
+
+
+def overlaps(record, questions, answers):
+    fields = {key(record["question"]), key(record["title"]),
+              key((record["title"] or "") + "\n\n" + record["question"])} - {""}
+    return bool(fields & questions or key(record["answer"]) in answers)
+
+
+def validate_corpus(root):
+    path = root / C.CORPUS_PATH
+    if not path.exists():
+        raise FileNotFoundError("RAG corpus missing; download the preprocessed corpus")
+    manifest = json.loads((root / C.CORPUS_DIR / "manifest.json").read_text())
+    if file_sha256(path) != manifest["files"]["combined_corpus.jsonl"]["sha256"]:
+        raise ValueError("RAG corpus hash changed")
+    if file_sha256(root / C.BENCHMARK_PATH) != manifest["leakage_checks"]["benchmark_sha256"]:
+        raise ValueError("Benchmark changed since corpus leakage audit")
+    questions, answers = benchmark_keys(root)
+    records = read_jsonl(path)
+    ids, prompts = set(), set()
+    for record in records:
+        if (record.get("source") not in {"stackoverflow", "techqa"}
+                or not all(isinstance(record.get(f), str) and record[f].strip()
+                           for f in ("id", "question", "answer", "retrieval_text", "context_text"))
+                or not record["id"].startswith(record["source"] + ":")
+                or not isinstance(record.get("metadata"), dict)):
+            raise ValueError("Invalid RAG document schema")
+        if record["id"] in ids or key(record["question"]) in prompts:
+            raise ValueError("Duplicate RAG document")
+        if overlaps(record, questions, answers):
+            raise ValueError("General-IT benchmark overlaps RAG corpus")
+        ids.add(record["id"])
+    return records, manifest
 
 
 def fingerprint(value):

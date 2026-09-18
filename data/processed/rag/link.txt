@@ -1,0 +1,1 @@
+You can download the RAG corpus used for this system here: https://drive.google.com/file/d/1I-YpYIG69k_AzbpCm9bcZKV1VlkgINlm/view?usp=sharing

@@ -17,9 +17,8 @@ def dataset_provenance(project_root: Path, settings: dict, experiment: str) -> d
               for split in ("train", "validation")}
     manifest_path = (project_root / settings["train_dataset"]).parent / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    expected_validation = "original_validation_sha256" if experiment == "dex" else "validation_sha256"
     if (not manifest["audit"]["passed"] or manifest["train_sha256"] != hashes["train_sha256"]
-            or manifest[expected_validation] != hashes["validation_sha256"]):
+            or manifest["validation_sha256"] != hashes["validation_sha256"]):
         raise ValueError("DEX data differs from the validated preprocessing manifest")
     if experiment == "dex_v2":
         benchmark_path = project_root / manifest["benchmark_path"]
