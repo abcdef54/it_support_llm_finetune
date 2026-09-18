@@ -11,6 +11,34 @@ Qwen3.5-9B and a fine-tuned QLoRA adapter. It can answer technical support quest
 
 ---
 
+## Benchmarking & Results
+
+DEX was evaluated against **1,000 unseen, held-out general IT support questions** (`data/processed/benchmark/`):
+
+- **Specialized IT Support:** Fine-tuned Qwen3.5-9B on 27,000 IT-support conversations using QLoRA to specialize the model for practical troubleshooting and technical support.
+- **Lexical and Semantic Gains:** Improved performance on 1,000 unseen IT-support questions from **0.076 to 0.461 ROUGE-L F1** and from **0.477 to 0.744 BERTScore F1** over the base model.
+- **LLM Judge Evaluation:** Achieved **77.95%** on an LLM-based answer-quality evaluation of DEX responses.
+- **Knowledge Augmentation:** Built a ChromaDB RAG pipeline using Stack Overflow and IBM TechQA knowledge to augment DEX with external technical information at inference time.
+
+### Benchmark Results Summary
+
+| Model | ROUGE-L F1 | BERTScore F1 | LLM Judge Quality |
+| :--- | :---: | :---: | :---: |
+| **Qwen3.5-9B (Base)** | 0.076 | 0.477 | - |
+| **DEX (Fine-Tuned QLoRA)** | **0.461** | **0.744** | **77.95%** |
+
+### Running Benchmarks
+
+```bash
+# Evaluate Base Qwen model
+.venv/bin/python -m benchmark.baseline.run_benchmark
+
+# Evaluate Fine-Tuned DEX model
+.venv/bin/python -m benchmark.finetuned.run_benchmark
+```
+
+---
+
 ## Getting Started
 
 ### 1. Environment Setup
@@ -26,7 +54,7 @@ pip install -r requirements.txt
 ### 2. Model Adapter Weights
 
 Download the pre-trained QLoRA adapter checkpoint:
-👉 **[Download DEX Adapter Checkpoint (Google Drive)](https://drive.google.com/file/d/11kNFX2W-P-VizW6mfMYsPovLMzNUfRpO/view?usp=sharing)**
+**[Download DEX Adapter Checkpoint (Google Drive)](https://drive.google.com/file/d/11kNFX2W-P-VizW6mfMYsPovLMzNUfRpO/view?usp=sharing)**
 
 Extract or place the checkpoint files into:
 ```text
@@ -37,7 +65,7 @@ models/qwen3.5-9b-it-support-dex-v2-qlora/
 ### 3. RAG Knowledge Base Setup
 
 To use `--rag`, download the pre-processed RAG knowledge corpus:
-👉 **[Download `combined_corpus.jsonl` (Google Drive)](https://drive.google.com/file/d/1I-YpYIG69k_AzbpCm9bcZKV1VlkgINlm/view?usp=sharing)**
+**[Download `combined_corpus.jsonl` (Google Drive)](https://drive.google.com/file/d/1I-YpYIG69k_AzbpCm9bcZKV1VlkgINlm/view?usp=sharing)**
 
 1. Place the downloaded file at:
    ```text
@@ -100,20 +128,6 @@ Train the 4-bit QLoRA adapter (~28 GiB VRAM recommended):
 To resume from an existing checkpoint:
 ```bash
 .venv/bin/python -m finetune.train --resume-from-checkpoint <path_to_checkpoint>
-```
-
----
-
-## Benchmarking
-
-Evaluate against the held-out 1,000-question general IT benchmark (`data/processed/benchmark/`):
-
-```bash
-# Evaluate Base Qwen model
-.venv/bin/python -m benchmark.baseline.run_benchmark
-
-# Evaluate Fine-Tuned DEX model
-.venv/bin/python -m benchmark.finetuned.run_benchmark
 ```
 
 ---
