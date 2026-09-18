@@ -46,11 +46,7 @@ Prepare everything needed so those can be launched afterward.
 
 # 1. Why We Are Changing Dataset
 
-The previous fine-tuning source was:
-
-```text
-Tobi-Bueck/customer-support-tickets
-```
+The retired fine-tuning source produced overly generic support replies.
 
 After training and inspecting its responses, we found that many assistant completions look like:
 
@@ -108,65 +104,17 @@ Build a curated dataset first.
 
 ---
 
-# 2. Preserve the Old Experiment
+# 2. Keep DEX Artifacts Separate
 
-The existing V1 experiment should remain reproducible.
-
-Do NOT delete:
-
-```text
-models/qwen3.5-9b-it-support-qlora/
-```
-
-Do NOT overwrite the old adapter.
-
-Do NOT destroy the old processed Tobi-Bueck dataset.
-
-Existing V1 files such as:
-
-```text
-data/processed/finetune/train.jsonl
-data/processed/finetune/validation.jsonl
-```
-
-should remain intact unless there is a compelling structural reason to archive them.
-
-Prefer simply creating:
+The older fine-tuning experiment has been retired. DEX uses its own processed
+data and adapter directory:
 
 ```text
 data/processed/finetune_v2/
-```
-
-for the new corpus.
-
-Conceptually:
-
-```text
-V1
-source:
-Tobi-Bueck/customer-support-tickets
-
-processed:
-data/processed/finetune/
-
-adapter:
-models/qwen3.5-9b-it-support-qlora/
-
-
-V2
-source:
-benjaminmacklin/IT_Support_V2
-
-processed:
-data/processed/finetune_v2/
-
-future adapter:
 models/qwen3.5-9b-it-support-dex-qlora/
 ```
 
-Do not delete V1 merely because V2 is better.
-
-V1 is useful experimental history.
+The DEX source is `benjaminmacklin/IT_Support_V2`.
 
 ---
 
@@ -1373,12 +1321,6 @@ and writes to a NEW directory such as:
 models/qwen3.5-9b-it-support-dex-qlora/
 ```
 
-Do NOT overwrite:
-
-```text
-models/qwen3.5-9b-it-support-qlora/
-```
-
 Preserve the existing hyperparameters initially unless code compatibility requires otherwise.
 
 Do not silently change:
@@ -1398,7 +1340,7 @@ gradient accumulation
 
 The purpose of the next experiment is primarily to measure the effect of the improved dataset.
 
-If current code supports explicit experiment/config names, prefer creating a V2/DEX config rather than destroying V1 settings.
+Use an explicit DEX experiment configuration.
 
 ---
 
@@ -1511,13 +1453,7 @@ Do not accidentally judge DEX using DEX itself.
 
 # 34. Refactor Benchmark Paths If Helpful
 
-If the current benchmark hardcodes the old adapter:
-
-```text
-models/qwen3.5-9b-it-support-qlora/
-```
-
-you may make adapter paths/configuration cleaner.
+Keep adapter paths/configuration clear.
 
 For example:
 
@@ -1528,8 +1464,6 @@ ADAPTER_PATH = "models/qwen3.5-9b-it-support-dex-qlora"
 or use a reusable fine-tuned benchmark configuration.
 
 Do not delete old benchmark results.
-
-Do not overwrite V1 results.
 
 Keep future DEX results in a clearly separate location, for example:
 
@@ -1625,8 +1559,6 @@ This task SHOULD NOT:
 
 ```text
 start the expensive QLoRA training run
-delete the V1 adapter
-delete V1 training data
 run the full 902-example DEX benchmark
 change TechQA
 tune anything against TechQA

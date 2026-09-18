@@ -2,12 +2,7 @@ from __future__ import annotations
 
 from benchmark.baseline.config import BASE_MODEL_ID, BASE_MODEL_REVISION
 
-TRAIN_DATASET = "data/processed/finetune/train.jsonl"
-VALIDATION_DATASET = "data/processed/finetune/validation.jsonl"
-OUTPUT_DIR = "models/qwen3.5-9b-it-support-qlora"
-
 EXPERIMENTS = {
-    "v1": {"train_dataset": TRAIN_DATASET, "validation_dataset": VALIDATION_DATASET, "output_dir": OUTPUT_DIR},
     "dex": {
         "train_dataset": "data/processed/finetune_v2/train.jsonl",
         "validation_dataset": "data/processed/finetune_v2/validation_original_3000.jsonl",

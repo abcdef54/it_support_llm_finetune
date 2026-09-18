@@ -15,24 +15,23 @@ from finetune.dataset import inspect_chat_format, load_datasets, load_split
 def dataset_provenance(project_root: Path, settings: dict, experiment: str) -> dict:
     hashes = {f"{split}_sha256": file_sha256(project_root / settings[f"{split}_dataset"])
               for split in ("train", "validation")}
-    if experiment in {"dex", "dex_v2"}:
-        manifest_path = (project_root / settings["train_dataset"]).parent / "manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        expected_validation = "original_validation_sha256" if experiment == "dex" else "validation_sha256"
-        if (not manifest["audit"]["passed"] or manifest["train_sha256"] != hashes["train_sha256"]
-                or manifest[expected_validation] != hashes["validation_sha256"]):
-            raise ValueError("DEX data differs from the validated preprocessing manifest")
-        if experiment == "dex_v2":
-            benchmark_path = project_root / manifest["benchmark_path"]
-            if benchmark_path.resolve() in {(project_root / settings[f"{split}_dataset"]).resolve()
-                                            for split in ("train", "validation")}:
-                raise ValueError("The DEX benchmark cannot be a training or validation file")
-            if (file_sha256(benchmark_path) != manifest["benchmark_sha256"]
-                    or any(count for pair in manifest["split_overlap_checks"].values() for count in pair.values())):
-                raise ValueError("DEX benchmark integrity or split-overlap audit failed")
-            hashes["benchmark_sha256"] = manifest["benchmark_sha256"]
-        hashes["manifest_path"] = str(manifest_path.relative_to(project_root))
-        hashes["source_revision"] = manifest["source_revision"]
+    manifest_path = (project_root / settings["train_dataset"]).parent / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_validation = "original_validation_sha256" if experiment == "dex" else "validation_sha256"
+    if (not manifest["audit"]["passed"] or manifest["train_sha256"] != hashes["train_sha256"]
+            or manifest[expected_validation] != hashes["validation_sha256"]):
+        raise ValueError("DEX data differs from the validated preprocessing manifest")
+    if experiment == "dex_v2":
+        benchmark_path = project_root / manifest["benchmark_path"]
+        if benchmark_path.resolve() in {(project_root / settings[f"{split}_dataset"]).resolve()
+                                        for split in ("train", "validation")}:
+            raise ValueError("The DEX benchmark cannot be a training or validation file")
+        if (file_sha256(benchmark_path) != manifest["benchmark_sha256"]
+                or any(count for pair in manifest["split_overlap_checks"].values() for count in pair.values())):
+            raise ValueError("DEX benchmark integrity or split-overlap audit failed")
+        hashes["benchmark_sha256"] = manifest["benchmark_sha256"]
+    hashes["manifest_path"] = str(manifest_path.relative_to(project_root))
+    hashes["source_revision"] = manifest["source_revision"]
     return hashes
 
 

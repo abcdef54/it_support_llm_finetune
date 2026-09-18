@@ -16,16 +16,15 @@ from finetune.train import dataset_provenance
 
 
 class DexSetupTests(unittest.TestCase):
-    def test_only_training_paths_change(self):
-        v1, dex = config.as_dict("v1"), config.as_dict("dex")
-        self.assertEqual({k for k in v1 if v1[k] != dex[k]}, {"train_dataset", "validation_dataset", "output_dir"})
+    def test_training_paths_select_dex_data(self):
+        dex = config.as_dict("dex")
+        self.assertEqual(set(config.EXPERIMENTS), {"dex", "dex_v2"})
         self.assertIn("finetune_v2", dex["train_dataset"])
         self.assertIn("dex-qlora", dex["output_dir"])
         self.assertEqual(dex["effective_batch_size"], dex["per_device_train_batch_size"] * dex["gradient_accumulation_steps"])
 
-    def test_only_benchmark_paths_change(self):
-        v1, dex = vars(benchmark_config.for_experiment("v1")), vars(benchmark_config.for_experiment("dex"))
-        self.assertEqual({k for k in v1 if v1[k] != dex[k]}, {"ADAPTER_PATH", "PREDICTIONS_PATH", "METRICS_PATH"})
+    def test_benchmark_paths_select_dex_adapter(self):
+        dex = vars(benchmark_config.for_experiment("dex"))
         self.assertIn("finetuned_dex", dex["PREDICTIONS_PATH"])
         with tempfile.TemporaryDirectory() as directory, patch("benchmark.baseline.model.QwenGenerator.load") as load:
             with self.assertRaisesRegex(FileNotFoundError, "adapter artifact"):
@@ -78,7 +77,7 @@ class DexSetupTests(unittest.TestCase):
             self.skipTest("DEX adapter will exist after the separately launched training run")
         inspect_adapter(path, settings.BASE_MODEL_ID, settings.BASE_MODEL_REVISION, expected_experiment="dex")
 
-    def test_dex_benchmark_rejects_v1_adapter_metadata(self):
+    def test_dex_benchmark_rejects_other_adapter_metadata(self):
         settings = benchmark_config.for_experiment("dex")
         with tempfile.TemporaryDirectory() as directory:
             adapter = Path(directory)
@@ -91,7 +90,7 @@ class DexSetupTests(unittest.TestCase):
             (adapter / "run_metadata.json").write_text(json.dumps({
                 "base_model_id": settings.BASE_MODEL_ID,
                 "base_model_revision": settings.BASE_MODEL_REVISION,
-                "experiment": "v1",
+                "experiment": "dex_v2",
             }))
             with self.assertRaisesRegex(ValueError, "dex training experiment"):
                 inspect_adapter(adapter, settings.BASE_MODEL_ID, settings.BASE_MODEL_REVISION,
