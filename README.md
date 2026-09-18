@@ -1,9 +1,16 @@
 # IT Support LLM Fine-Tuning
 
-The project includes dataset preparation, QLoRA fine-tuning setup, and baseline
-and fine-tuned benchmark pipelines.
+DEX (Diagnostic EXpert) is Qwen3.5-9B fine-tuned on general IT-support
+conversations. Fine-tuning teaches its support behavior; retrieval supplies
+technical knowledge from Stack Overflow and IBM TechQA. A persistent ChromaDB
+collection stores BGE embeddings for both sources.
 
-## Prepare the datasets
+The held-out 1,000-question general-IT benchmark compares Base, DEX,
+Base + RAG, and DEX + RAG using the same questions, generation settings,
+base-model judge, and metrics. The RAG variants consume one identical saved
+retrieval/context artifact.
+
+## TechQA data preparation
 
 Activate the existing virtual environment, then run:
 
@@ -13,10 +20,9 @@ python -m data.prepare
 python -m unittest discover -s tests -v
 ```
 
-The first command downloads pinned Hugging Face revisions, preserves them under
-`data/raw/`, inspects the source schemas, creates the processed JSONL files, and
-validates duplicates, split overlap, schemas, and exact TechQA leakage. To reuse
-raw files already downloaded, pass `--skip-download`.
+The command downloads pinned TechQA data, inspects its schema, prepares the
+historical benchmark file, and validates its records. To reuse the raw files,
+pass `--skip-download`.
 
 Generated outputs:
 
@@ -25,16 +31,13 @@ data/processed/
 ├── download_manifest.json
 ├── schema_report.json
 ├── validation_report.json
-├── finetune/train.jsonl
-├── finetune/validation.jsonl
 ├── evaluation/techqa_benchmark.jsonl
-└── rag/documents.jsonl
 ```
 
 All usable labeled TechQA examples from its original train and development
 splits remain in one historical benchmark file; their original split is metadata
-only. TechQA is not used for SFT or indexed by RAG in this phase. Any later use
-as a RAG source requires a separate implementation and leakage review.
+only. The RAG commands below build the current Stack Overflow + answerable
+TechQA corpus. TechQA is never used for SFT.
 
 ## DEX fine-tuning data (V2)
 
@@ -89,8 +92,7 @@ CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m finetune.train --project-root . --exp
 ```
 
 It writes a **new** adapter directory at
-`models/qwen3.5-9b-it-support-dex-v2-qlora/`. The earlier DEX adapter and V1
-adapter are preserved. `--experiment dex` still identifies the earlier 3K
+`models/qwen3.5-9b-it-support-dex-v2-qlora/`. `--experiment dex` still identifies the earlier 3K
 validation layout for historical reproducibility. QLoRA hyperparameters are
 unchanged: one epoch, batch 8, accumulation 1, and the existing LoRA settings.
 Training evaluates validation loss at each configured save interval, restores
@@ -188,7 +190,150 @@ CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.finetuned.run_benchmark --p
 ```
 
 It writes to `results/finetuned_dex_v2/`, separate from the baseline and all
-historical results. `--experiment v1` and `--experiment dex` still select their
-old adapters and TechQA results. Existing outputs are protected unless
+historical results. `--experiment dex` still selects the earlier DEX adapter
+and TechQA results. Existing outputs are protected unless
 `--overwrite` is supplied; do not mix results from different configurations.
 The DEX V2 benchmark must wait until the new adapter exists.
+
+## RAG: Stack Overflow + IBM TechQA
+
+The current policy is defined in `rag/corpus/rag_plan.md`. TechQA is now
+knowledge available to retrieval. Its historical files/results are preserved,
+but TechQA + RAG is **not** held-out evaluation and the benchmark commands
+reject that combination. The new general-IT benchmark remains held out.
+
+The pipeline uses the pinned [Stack Overflow Q&A dataset](https://huggingface.co/datasets/krylodar/StackOverFlowQA)
+and existing TechQA data. It scans the full Stack Overflow snapshot, keeps
+nonempty accepted-answer pairs with question score >= 0 and answer score >= 1
+when those fields exist, and selects up to 75,000 records across eight support
+topics using deterministic hash sampling and round-robin selection. Each topic
+has a cap; underfilled topics are not padded with lower-quality records.
+Generic Python questions require package/environment/import relevance.
+There is no date cutoff. Exact duplicate questions and exact matches to
+general-IT benchmark prompts or reference answers are excluded. Reading the
+benchmark for this exclusion audit never adds its content to the corpus.
+This is an exact-match firewall, not a semantic near-duplicate guarantee.
+
+HTML cleaning retains commands and code indentation. Each Q&A is one retrieval
+unit. Stack Overflow retrieval text contains the title/question; its accepted
+answer is returned after retrieval. TechQA uses its question for retrieval and
+returns the IBM answer. Null answers are excluded. Normalized embeddings use
+the pinned [BGE base English v1.5 model](https://huggingface.co/BAAI/bge-base-en-v1.5)
+with its query instruction. BGE input is capped at 512 tokens; truncation counts
+are reported, while the stored Q&A remains complete.
+
+Install dependencies and build the corpus/index (no Qwen weights are loaded):
+
+```bash
+uv pip install -r requirements.txt
+.venv/bin/python -m rag.build_corpus --project-root . --download
+.venv/bin/python -m rag.index --project-root . --device cuda --batch-size 32
+.venv/bin/python -m rag.smoke --project-root . --device cuda
+```
+
+Use `python -m rag.build_corpus --validate` and `python -m rag.index --check`
+to validate existing assets without recomputing them or loading any model.
+
+The raw Stack Overflow download is about 4.3 GB. Corpus preparation scans it
+once; omit `--download` to reuse it. Embedding defaults to CUDA when available,
+with CPU fallback (`--device cpu`). CUDA uses FP16 BGE inference, CPU uses FP32;
+the output vectors are normalized/stored as FP32. Index metadata records the
+precision policy, device, batch size, vector hash and library versions.
+Only the small embedding model is loaded during indexing, never Qwen.
+On another machine, regenerate the large corpus and index with these commands;
+they are intentionally excluded from Git. Small manifests/reports are tracked.
+
+Outputs:
+
+```text
+data/processed/rag/
+    stackoverflow_it_support.jsonl
+    techqa_ibm.jsonl
+    combined_corpus.jsonl
+    manifest.json
+    filter_stats.json
+    retrieval_smoke_report.json
+    general_it_contexts.json       # created explicitly below; ignored by Git
+data/vectorstore/chroma/
+    manifest.json
+    ... persistent Chroma files ...
+```
+
+The RAG manifest records source revisions,
+hashes, filtering/deduplication counts, topic/tag distributions, and the leakage
+audit. Indexing reuses a matching complete index; interrupted builds can be
+rerun with the same command using stable IDs. A changed corpus or embedding
+configuration fails clearly. Use `python -m rag.index --rebuild` only when you
+intend to replace the derived RAG collection. Historical datasets/results are
+not replaced by this operation.
+
+Retrieval alone works without Qwen:
+
+```bash
+.venv/bin/python -m rag.retrieve --query "Which ITM version supports CANDLEDATA?" --top-k 5
+.venv/bin/python -m rag.retrieve --query "SSH permission denied" --source stackoverflow
+```
+
+Results include source IDs, similarity scores, questions, answers and metadata.
+The smoke command checks known IBM facts and general technical queries against
+the real index, then verifies context construction using the Qwen **tokenizer
+only**. These are retrieval diagnostics, not benchmark quality scores.
+
+Manual generation on a machine suitable for Qwen:
+
+```bash
+.venv/bin/python -m rag.query --model base --question "Why does SSH return permission denied?" --debug-retrieval
+.venv/bin/python -m rag.query --model dex --question "Which ITM version supports CANDLEDATA?"
+```
+
+Both default to RAG. Add `--no-rag` for the corresponding plain Base/DEX mode.
+DEX requires the `dex_v2` adapter. BGE is released before Qwen loads.
+Answers may cite numbered sources; saved retrieval metadata records the actual
+passages supplied, but citations do not prove that a passage caused an answer.
+
+## Controlled RAG benchmarks
+
+Prepare the shared contexts once, using only retrieval and the Qwen tokenizer:
+
+```bash
+.venv/bin/python -m rag.prepare_benchmark --project-root . --device cuda
+```
+
+This saves top-5 retrieval results and final formatted contexts for all 1,000
+questions. It does not generate or judge answers. Both RAG models use this
+exact file. Context is capped at 2,400 Qwen tokens and the complete chat at
+4,096 tokens. Higher-ranked records are considered first; whole records that
+do not fit are skipped. User questions are never truncated: an overlong
+question fails before generation. Sources are labeled and the prompt tells
+the model to ignore irrelevant passages and abstain when information is
+insufficient. No reference answers are placed in the retrieval artifact.
+
+Only when ready to run the full GPU experiments:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.run_benchmark --project-root . --rag
+CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.finetuned.run_benchmark --project-root . --experiment dex_v2 --rag
+```
+
+| Experiment | Result directory |
+| --- | --- |
+| Base | `results/base_general_it/` |
+| DEX | `results/finetuned_dex_v2/` |
+| Base + RAG | `results/base_rag_general_it/` |
+| DEX + RAG | `results/finetuned_dex_v2_rag/` |
+
+The existing `--resume` behavior applies. RAG fingerprints include corpus,
+index/vector configuration, embedding revision, top-k, context budget, prompt,
+benchmark hash, and the shared artifact hash. Changed inputs reject resume.
+Regenerate a stale artifact explicitly using `rag.prepare_benchmark --overwrite`.
+Retrieval does not run again during generation or judging. The same untouched
+base judge and metrics evaluate all four variants. Predictions also store
+retrieved/used IDs, source scores, context and token counts; metrics include
+average documents used, average context tokens, and source counts separately
+from answer quality.
+
+Lightweight tests (no model downloads or Qwen loading):
+
+```bash
+.venv/bin/python -m unittest rag.test_rag benchmark.finetuned.test_benchmark benchmark.test_general_it_protocol -q
+```

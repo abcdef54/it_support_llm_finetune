@@ -14,3 +14,8 @@ results/
 .agents/
 
 tests/
+data/vectorstore/
+data/processed/rag/general_it_contexts.json
+# Large reproducible corpus assets; rebuild from the pinned source on each machine.
+data/processed/rag/combined_corpus.jsonl
+data/processed/rag/stackoverflow_it_support.jsonl
