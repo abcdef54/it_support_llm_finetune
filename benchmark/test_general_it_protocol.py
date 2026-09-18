@@ -87,8 +87,15 @@ class GeneralITProtocolTests(unittest.TestCase):
         self.assertEqual(base.DATASET_KIND, tuned.DATASET_KIND)
         for name in ("BASE_MODEL_ID", "BASE_MODEL_REVISION", "MODEL_DTYPE", "GENERATION_MODE",
                      "GENERATION_TEMPERATURE", "MAX_NEW_TOKENS", "MAX_INPUT_TOKENS", "RANDOM_SEED",
-                     "ENABLE_THINKING", "ANSWER_SYSTEM_PROMPT", "ANSWER_BATCH_SIZE", "JUDGE_BATCH_SIZE"):
+                     "ENABLE_THINKING", "ANSWER_SYSTEM_PROMPT", "JUDGE_BATCH_SIZE"):
             self.assertEqual(getattr(base, name), getattr(tuned, name), name)
+        self.assertEqual((base.ANSWER_BATCH_SIZE, tuned.ANSWER_BATCH_SIZE), (12, 16))
+        self.assertEqual(baseline.for_benchmark(answer_batch_size=7).ANSWER_BATCH_SIZE, 7)
+        self.assertEqual(finetuned.for_experiment(answer_batch_size=7).ANSWER_BATCH_SIZE, 7)
+        with self.assertRaisesRegex(ValueError, "positive"):
+            baseline.for_benchmark(answer_batch_size=0)
+        with self.assertRaisesRegex(ValueError, "positive"):
+            finetuned.for_experiment(answer_batch_size=0)
         self.assertNotEqual(base.PREDICTIONS_PATH, tuned.PREDICTIONS_PATH)
         self.assertEqual(baseline.for_benchmark("techqa").DATASET_PATH, baseline.DATASET_PATH)
         self.assertEqual(len(load_techqa(ROOT / baseline.DATASET_PATH)), 902)

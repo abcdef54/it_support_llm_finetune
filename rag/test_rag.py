@@ -166,7 +166,8 @@ class RAGTests(unittest.TestCase):
         identity = retrieval_configuration(self.root, manifest)
         self.assertTrue({"enabled", "corpus_sha256", "index_fingerprint", "embedding_model", "embedding_revision",
                          "benchmark_sha256", "top_k", "max_context_tokens", "rag_prompt_sha256"} <= identity.keys())
-        with patch.object(C, "RAG_TOP_K", 3):
+        self.assertEqual(identity["top_k"], 3)
+        with patch.object(C, "RAG_TOP_K", 5):
             self.assertNotEqual(identity, retrieval_configuration(self.root, manifest))
 
     def test_shared_artifact_reuse_integrity_and_no_reference_answers(self):
@@ -219,7 +220,7 @@ class RAGTests(unittest.TestCase):
                 pass
 
         model = FakeModel()
-        metadata = {"rag": {"retrieval_artifact_sha256": "one", "top_k": 5}}
+        metadata = {"rag": {"retrieval_artifact_sha256": "one", "top_k": 3}}
         with (patch("benchmark.common.runner.load_general_it", return_value=[example]),
               patch("benchmark.common.runner._set_seed"),
               patch("benchmark.common.runner.bertscore_f1", return_value=[0.8])):

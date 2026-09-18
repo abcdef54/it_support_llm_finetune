@@ -108,13 +108,14 @@ the complete benchmark:
 CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.probe_batching --project-root .
 ```
 
-It checks answer and judge outputs at batch sizes 1, 2, 4, 8, and 16, and prints
+It checks answer and judge outputs at batch sizes 1, 2, 4, 8, 12, and 16, and prints
 elapsed time, examples per second, and peak allocated VRAM. This historical
 throughput probe uses TechQA prompts but does not write benchmark results. The
 configured answer and judge batch sizes are in
-`benchmark/baseline/config.py`: answers use 16, while judging uses 1. On the
-16-example 5090 probe, answer batch 16 was fastest and used 19.33 GiB peak
-allocated VRAM. Judge batches above 1 changed a score on one fixed judge
+`benchmark/baseline/config.py`: base answers default to 12 for RAG memory
+headroom, fine-tuned answers remain at 16 for existing checkpoint compatibility,
+and judging uses 1. On an earlier 16-example 5090 probe, answer batch 16 was
+fastest and used 19.33 GiB peak allocated VRAM. Judge batches above 1 changed a score on one fixed judge
 prompt, so judging remains unbatched to preserve the measured scoring behavior.
 The probe still reports differences for every candidate size, but its final
 configuration check applies only to the selected answer and judge sizes.
@@ -134,6 +135,10 @@ The primary general-IT baseline benchmark remains a separate command:
 ```bash
 CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.run_benchmark --project-root .
 ```
+
+Use `--answer-batch-size N` on either benchmark command to select any positive
+answer batch size. The selected size is recorded in metrics and in the resume
+fingerprint; resume an interrupted run with the same value.
 
 It uses the new 1K benchmark and writes to `results/base_general_it/`.
 For the historical 902-example TechQA benchmark, add `--benchmark techqa`;
@@ -270,7 +275,7 @@ not replaced by this operation.
 Retrieval alone works without Qwen:
 
 ```bash
-.venv/bin/python -m rag.retrieve --query "Which ITM version supports CANDLEDATA?" --top-k 5
+.venv/bin/python -m rag.retrieve --query "Which ITM version supports CANDLEDATA?" --top-k 3
 .venv/bin/python -m rag.retrieve --query "SSH permission denied" --source stackoverflow
 ```
 
@@ -315,6 +320,10 @@ CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.baseline.run_benchmark --pr
 CUDA_VISIBLE_DEVICES=0 .venv/bin/python -m benchmark.finetuned.run_benchmark --project-root . --experiment dex_v2 --rag
 ```
 
+The Base + RAG command now defaults to answer batch 12; DEX + RAG still
+defaults to 16. Either may be overridden with `--answer-batch-size N` before
+starting a new run.
+
 | Experiment | Result directory |
 | --- | --- |
 | Base | `results/base_general_it/` |
@@ -326,6 +335,9 @@ The existing `--resume` behavior applies. RAG fingerprints include corpus,
 index/vector configuration, embedding revision, top-k, context budget, prompt,
 benchmark hash, and the shared artifact hash. Changed inputs reject resume.
 Regenerate a stale artifact explicitly using `rag.prepare_benchmark --overwrite`.
+Changing `RAG_TOP_K` (currently 3) makes the saved contexts stale and requires
+that command before either RAG benchmark; runs started with another top-k cannot
+be resumed under the new setting.
 Retrieval does not run again during generation or judging. The same untouched
 base judge and metrics evaluate all four variants. Predictions also store
 retrieved/used IDs, source scores, context and token counts; metrics include

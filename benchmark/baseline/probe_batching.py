@@ -26,7 +26,7 @@ from benchmark.common.dataset import load_techqa
 from benchmark.common.generation import batches
 from benchmark.common.judge import build_judge_messages, parse_judge_output
 
-PROBE_BATCH_SIZES = (1, 2, 4, 8, 16)
+PROBE_BATCH_SIZES = (1, 2, 4, 8, 12, 16)
 
 
 def _measure(generator: QwenGenerator, prompts: list[list[dict[str, str]]], size: int, token_limit: int) -> tuple[list[str], dict]:

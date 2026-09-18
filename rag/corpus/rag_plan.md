@@ -774,7 +774,7 @@ Conceptually:
 ```python
 results = retriever.retrieve(
     query,
-    top_k=5,
+    top_k=3,
 )
 ```
 
@@ -807,7 +807,7 @@ Start simple.
 Suggested initial value:
 
 ```python
-RAG_TOP_K = 5
+RAG_TOP_K = 3
 ```
 
 Make it configurable.
@@ -1030,7 +1030,7 @@ Something conceptually like:
 python -m rag.query \
     --model dex \
     --question "Why does SSH keep returning permission denied?" \
-    --top-k 5
+    --top-k 3
 ```
 
 and optionally:
@@ -1039,7 +1039,7 @@ and optionally:
 python -m rag.query \
     --model base \
     --question "Does Linux KVM monitoring support CANDLEDATA?" \
-    --top-k 5
+    --top-k 3
 ```
 
 Output should display:
@@ -1066,7 +1066,7 @@ Example:
 ```bash
 python -m rag.retrieve \
     --query "CANDLEDATA Linux KVM monitoring"
-    --top-k 5
+    --top-k 3
 ```
 
 This should display something like:
@@ -1447,7 +1447,7 @@ STACKOVERFLOW_MAX_RECORDS = 75_000
 
 EMBEDDING_MODEL = "BAAI/bge-base-en-v1.5"
 
-RAG_TOP_K = 5
+RAG_TOP_K = 3
 
 RAG_MAX_CONTEXT_TOKENS = 2400
 

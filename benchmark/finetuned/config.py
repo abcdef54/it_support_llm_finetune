@@ -16,8 +16,8 @@ ENABLE_THINKING = baseline.ENABLE_THINKING
 DATASET_PATH = baseline.DATASET_PATH
 ANSWER_SYSTEM_PROMPT = baseline.ANSWER_SYSTEM_PROMPT
 
-# These may be lowered independently only if the adapter makes a batch too large.
-ANSWER_BATCH_SIZE = baseline.ANSWER_BATCH_SIZE
+# Preserve the existing fine-tuned run's batch size for checkpoint compatibility.
+ANSWER_BATCH_SIZE = 16
 JUDGE_BATCH_SIZE = baseline.JUDGE_BATCH_SIZE
 
 ADAPTER_PATH = "models/qwen3.5-9b-it-support-dex-qlora"
@@ -26,7 +26,7 @@ PREDICTIONS_PATH = "results/finetuned_dex/predictions.jsonl"
 METRICS_PATH = "results/finetuned_dex/metrics.json"
 
 
-def for_experiment(experiment: str = "dex_v2") -> SimpleNamespace:
+def for_experiment(experiment: str = "dex_v2", *, answer_batch_size: int | None = None) -> SimpleNamespace:
     if experiment not in {"dex", "dex_v2"}:
         raise ValueError(f"Unknown fine-tuned benchmark experiment: {experiment}")
     values = {name: value for name, value in globals().items() if name.isupper()}
@@ -40,4 +40,8 @@ def for_experiment(experiment: str = "dex_v2") -> SimpleNamespace:
             PREDICTIONS_PATH="results/finetuned_dex_v2/predictions.jsonl",
             METRICS_PATH="results/finetuned_dex_v2/metrics.json",
         )
+    if answer_batch_size is not None:
+        if answer_batch_size < 1:
+            raise ValueError("Answer batch size must be positive")
+        values["ANSWER_BATCH_SIZE"] = answer_batch_size
     return SimpleNamespace(**values)

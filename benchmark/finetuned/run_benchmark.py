@@ -13,8 +13,9 @@ from benchmark.finetuned import config as benchmark_config
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
 
 
-def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "dex_v2", rag: bool = False) -> dict:
-    config = benchmark_config.for_experiment(experiment)
+def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "dex_v2", rag: bool = False,
+        answer_batch_size: int | None = None) -> dict:
+    config = benchmark_config.for_experiment(experiment, answer_batch_size=answer_batch_size)
     rag_records, rag_metadata = None, None
     if rag:
         if experiment != "dex_v2":
@@ -48,9 +49,9 @@ def run(project_root: Path, overwrite: bool = False, resume: bool = False, exper
     )
 
 
-def smoke(project_root: Path, experiment: str = "dex_v2") -> dict:
+def smoke(project_root: Path, experiment: str = "dex_v2", answer_batch_size: int | None = None) -> dict:
     """Check real adapter and base-judge inference without reading benchmark data or writing results."""
-    config = benchmark_config.for_experiment(experiment)
+    config = benchmark_config.for_experiment(experiment, answer_batch_size=answer_batch_size)
     adapter_path = project_root / config.ADAPTER_PATH
     adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
                               expected_experiment=experiment)
@@ -92,11 +93,13 @@ if __name__ == "__main__":
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
     parser.add_argument("--rag", action="store_true", help="Use the same saved contexts as Base + RAG")
+    parser.add_argument("--answer-batch-size", type=int, help="Positive answer batch size (default: 16)")
     parser.add_argument("--smoke", action="store_true", help="Run a synthetic GPU smoke test without benchmark data or results")
     parser.add_argument("--experiment", choices=("dex", "dex_v2"), default="dex_v2",
                         help="Select adapter, benchmark, and result directory; dex_v2 uses the new general-IT test")
     args = parser.parse_args()
     if args.smoke and args.rag:
         parser.error("Use python -m rag.smoke for retrieval checks or python -m rag.query for explicit RAG generation")
-    print(smoke(args.project_root.resolve(), args.experiment) if args.smoke else run(
-        args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, experiment=args.experiment, rag=args.rag))
+    print(smoke(args.project_root.resolve(), args.experiment, args.answer_batch_size) if args.smoke else run(
+        args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, experiment=args.experiment,
+        rag=args.rag, answer_batch_size=args.answer_batch_size))

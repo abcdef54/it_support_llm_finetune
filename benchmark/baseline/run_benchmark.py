@@ -9,8 +9,9 @@ from benchmark.common.config import JUDGE_MODEL_ID, JUDGE_MODEL_REVISION
 from benchmark.common.runner import _set_seed, run_benchmark
 
 
-def run(project_root: Path, overwrite: bool = False, resume: bool = False, benchmark: str = "general_it", rag: bool = False) -> dict:
-    settings = config.for_benchmark(benchmark)
+def run(project_root: Path, overwrite: bool = False, resume: bool = False, benchmark: str = "general_it", rag: bool = False,
+        answer_batch_size: int | None = None) -> dict:
+    settings = config.for_benchmark(benchmark, answer_batch_size=answer_batch_size)
     rag_records, rag_metadata = None, None
     if rag:
         if benchmark != "general_it":
@@ -38,7 +39,9 @@ if __name__ == "__main__":
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
     parser.add_argument("--rag", action="store_true", help="Use shared precomputed general-IT retrieval contexts")
+    parser.add_argument("--answer-batch-size", type=int, help="Positive answer batch size (default: 12)")
     parser.add_argument("--benchmark", choices=("general_it", "techqa"), default="general_it",
                         help="General IT is primary; TechQA remains available for historical comparison")
     args = parser.parse_args()
-    print(run(args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, benchmark=args.benchmark, rag=args.rag))
+    print(run(args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, benchmark=args.benchmark,
+              rag=args.rag, answer_batch_size=args.answer_batch_size))
