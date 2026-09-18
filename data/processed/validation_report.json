@@ -1,48 +1,13 @@
 {
-  "title": "Dataset Preparation Validation Report",
+  "title": "TechQA Preparation Validation Report",
   "status": "PASS",
   "passed": true,
   "sizes": {
-    "train": 6602,
-    "validation": 734,
-    "techqa_benchmark": 902,
-    "rag": 500
+    "techqa_benchmark": 902
   },
   "preprocessing": {
-    "finetune": {
-      "input": 28587,
-      "filtered": 21251,
-      "duplicates": 0,
-      "exclusion_reasons": {
-        "non_english": 12249,
-        "queue_not_allowed": 8995,
-        "prompt_or_answer_under_20_characters": 7,
-        "duplicate_prompt": 0
-      },
-      "kept": 7336,
-      "train": 6602,
-      "validation": 734,
-      "validation_ratio": 0.1,
-      "seed": 42,
-      "filter_criteria": {
-        "language": "en",
-        "allowed_queues": [
-          "IT Support",
-          "Service Outages and Maintenance",
-          "Technical Support"
-        ],
-        "minimum_prompt_characters": 20,
-        "minimum_answer_characters": 20,
-        "deduplication_key": "normalized prompt text"
-      },
-      "source_file": "data/raw/finetune/aa_dataset-tickets-multi-lang-5-2-50-version.csv",
-      "output_files": [
-        "data/processed/finetune/train.jsonl",
-        "data/processed/finetune/validation.jsonl"
-      ]
-    },
     "evaluation": {
-      "policy": "benchmark_only",
+      "policy": "historical_benchmark_and_rag_knowledge",
       "original_labeled_examples": 910,
       "source_counts": {
         "train": 600,
@@ -96,41 +61,11 @@
       "usage_restrictions": [
         "No fine-tuning or weight updates",
         "No hyperparameter or prompt tuning",
-        "No RAG development or indexing",
-        "Use unchanged for all four final experiments"
-      ]
-    },
-    "rag": {
-      "input": 500,
-      "invalid": 0,
-      "duplicates": 0,
-      "exclusion_reasons": {
-        "missing_id_or_text_under_20_characters": 0,
-        "duplicate_id": 0,
-        "duplicate_text": 0
-      },
-      "documents": 500,
-      "source_file": "data/raw/rag/tickets.csv",
-      "output_file": "data/processed/rag/documents.jsonl",
-      "metadata_fields": [
-        "subject",
-        "category",
-        "priority",
-        "created_at"
-      ],
-      "excluded_metadata_fields": [
-        "requesterEmail"
+        "TechQA is also a RAG knowledge source; historical benchmark results are not held-out RAG evaluations"
       ]
     }
   },
   "sources": {
-    "finetune": {
-      "repo_id": "Tobi-Bueck/customer-support-tickets",
-      "revision": "ddf1c81a5475992c4fa6752bf1e8b4e31f07bbeb",
-      "license": "CC-BY-NC-4.0",
-      "directory": "data/raw/finetune",
-      "selected_input": "aa_dataset-tickets-multi-lang-5-2-50-version.csv"
-    },
     "evaluation": {
       "repo_id": "PrimeQA/TechQA",
       "revision": "60437bc79ab217679682217598a3693cab78365b",
@@ -140,39 +75,14 @@
         "TechQA/training_and_dev/training_Q_A.json",
         "TechQA/training_and_dev/dev_Q_A.json"
       ]
-    },
-    "rag": {
-      "repo_id": "Console-AI/IT-helpdesk-synthetic-tickets",
-      "revision": "165693849d955c6da4c00bc8be8e541afec0514e",
-      "license": "MIT",
-      "directory": "data/raw/rag",
-      "selected_input": "tickets.csv"
     }
   },
   "outputs": {
-    "fine-tuning train": {
-      "path": "data/processed/finetune/train.jsonl",
-      "records": 6602,
-      "bytes": 5752993,
-      "sha256": "5bb7764c3e6667c00c6d2df12c1cdd2b782b1eb5005e3da2d6bbf4364c4104be"
-    },
-    "fine-tuning validation": {
-      "path": "data/processed/finetune/validation.jsonl",
-      "records": 734,
-      "bytes": 654911,
-      "sha256": "06e9e9a2e5223639a0af569b7f701abc3a8eeb0907e83e004c4fd01be6cc9b06"
-    },
     "TechQA benchmark": {
       "path": "data/processed/evaluation/techqa_benchmark.jsonl",
       "records": 902,
       "bytes": 1743552,
       "sha256": "d00913397224f4def4a5435bdf8c7a6f7d5b66d4a72dd4648694f8991f22e7e3"
-    },
-    "initial RAG documents": {
-      "path": "data/processed/rag/documents.jsonl",
-      "records": 500,
-      "bytes": 327802,
-      "sha256": "518676c1aae056a71e78886fa535cbca25dad3379580f53d2a50b150c84a5f67"
     }
   },
   "checks": {
@@ -184,21 +94,9 @@
       "passed": true,
       "details": "Remaining duplicates: 0 across all outputs."
     },
-    "train_validation_disjoint": {
-      "passed": true,
-      "details": "Overlapping normalized prompts: 0"
-    },
-    "no_exact_techqa_leakage": {
-      "passed": true,
-      "details": "Exact normalized TechQA matches: 0."
-    },
     "reasonable_dataset_sizes": {
       "passed": true,
-      "details": "6,602 train, 734 validation, 902 TechQA, and 500 RAG records."
-    },
-    "deterministic_split_configuration": {
-      "passed": true,
-      "details": "Fixed random seed: 42"
+      "details": "902 TechQA records."
     },
     "all_techqa_source_splits_combined": {
       "passed": true,
@@ -210,26 +108,15 @@
     }
   },
   "duplicates": {
-    "train_prompts": 0,
-    "validation_prompts": 0,
     "techqa_ids": 0,
-    "rag_ids": 0,
-    "rag_texts": 0
-  },
-  "train_validation_prompt_overlap": 0,
-  "exact_leakage": {
-    "techqa_questions_in_finetune": 0,
-    "techqa_answers_in_finetune": 0,
-    "techqa_questions_in_rag": 0,
-    "techqa_answers_in_rag": 0
+    "techqa_question_answer_pairs": 0
   },
   "notes": [
     "Raw source files are preserved under data/raw and excluded from version control.",
-    "All usable labeled TechQA train and dev source records are combined into one benchmark-only dataset; original split is traceability metadata only.",
-    "The TechQA benchmark is excluded from fine-tuning, validation, prompt or hyperparameter tuning, RAG development, indexing, and weight updates.",
-    "The same unchanged TechQA benchmark must be used for all four later experiments.",
-    "Leakage detection checks exact normalized questions and answers; it is not a semantic-similarity audit.",
-    "RAG preprocessing creates whole documents only; chunking, embeddings, retrieval, and vector storage are intentionally out of scope."
+    "All usable labeled TechQA train and dev source records are combined into one historical benchmark file; original split is traceability metadata only.",
+    "TechQA is excluded from fine-tuning and tuning; it is now also a RAG knowledge source. Historical TechQA benchmark results predate this role change.",
+    "DEX split and leakage checks are recorded in the separate finetune_v2 manifest.",
+    "The current RAG corpus and index are validated separately by rag.build_corpus and rag.index."
   ],
   "errors": []
 }

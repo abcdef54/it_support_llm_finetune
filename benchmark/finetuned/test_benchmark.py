@@ -139,7 +139,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
                 if self.stage == "answer":
                     self.test_messages = messages
                     return [f"answer {item[-1]['content']}" for item in messages]
-                return [json.dumps({"score": int(re.search(r"Question:\nQ(\d+)", item[-1]["content"]).group(1)) % 5,
+                return [json.dumps({"score": int(re.search(r"Question:\s+Q(\d+)", item[-1]["content"]).group(1)) % 5,
                                     "reason": "checked"}) for item in messages]
 
             def close(self):
@@ -161,7 +161,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.common.runner.load_techqa", return_value=examples),
             patch("benchmark.common.runner.bertscore_f1", return_value=[0.0] * len(examples)),
         ):
-            summary = run(Path(directory), experiment="v1")
+            summary = run(Path(directory), experiment="dex")
             predictions = [json.loads(line) for line in (Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()]
             self.assertFalse((Path(directory) / baseline.PREDICTIONS_PATH).exists())
 
@@ -201,7 +201,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.common.runner.load_techqa", return_value=[example]),
             patch("benchmark.common.runner.bertscore_f1", return_value=[0.0]),
         ):
-            summary = run(Path(directory), experiment="v1")
+            summary = run(Path(directory), experiment="dex")
             prediction = json.loads((Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()[0])
         self.assertEqual(summary["judge_retries"], 1)
         self.assertEqual(summary["configuration"]["judge_retry_max_new_tokens"], JUDGE_RETRY_MAX_NEW_TOKENS)
@@ -247,7 +247,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.common.runner.load_techqa", return_value=[example]),
             patch("benchmark.common.runner.bertscore_f1", return_value=[0.0]),
         ):
-            summary = run(Path(directory), experiment="v1")
+            summary = run(Path(directory), experiment="dex")
             prediction = json.loads((Path(directory) / config.PREDICTIONS_PATH).read_text().splitlines()[0])
         self.assertEqual(summary["judge_recovered_scores"], 1)
         self.assertEqual(summary["judge_retries"], 1)
@@ -347,7 +347,7 @@ class FineTunedBenchmarkTests(unittest.TestCase):
             patch("benchmark.finetuned.run_benchmark.QwenGenerator.load", return_value=judge) as load_judge,
             patch("benchmark.common.runner.load_techqa", side_effect=AssertionError("TechQA must not be read")),
         ):
-            result = smoke(Path(directory), experiment="v1")
+            result = smoke(Path(directory), experiment="dex")
             self.assertFalse((Path(directory) / "results").exists())
         self.assertEqual(result["synthetic_answers"], config.ANSWER_BATCH_SIZE)
         self.assertEqual(len(answer.calls[0][0]), 16)

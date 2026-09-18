@@ -35,9 +35,13 @@ class ExampleResult:
     reference_answer: str | None
     generated_answer: str
     metrics: ExampleMetrics
+    rag: dict | None = None
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        result = asdict(self)
+        if self.rag is None:
+            result.pop("rag")
+        return result
 
 
 def write_results(

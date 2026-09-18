@@ -53,6 +53,7 @@ def run_benchmark(
     overwrite: bool = False,
     resume: bool = False,
     extra_metadata: dict | None = None,
+    rag_records: dict | None = None,
 ) -> dict:
     if settings.ANSWER_BATCH_SIZE < 1 or settings.JUDGE_BATCH_SIZE < 1:
         raise ValueError("Answer and judge batch sizes must be positive")
@@ -68,6 +69,8 @@ def run_benchmark(
         raise FileExistsError(f"{label} benchmark output already exists; pass --overwrite to replace it")
 
     dataset_kind = getattr(settings, "DATASET_KIND", "techqa")
+    if rag_records is not None and dataset_kind != "general_it":
+        raise ValueError("TechQA is indexed knowledge and cannot be a held-out RAG benchmark")
     if dataset_kind == "general_it":
         manifest = json.loads((project_root / settings.DATASET_MANIFEST_PATH).read_text(encoding="utf-8"))
         if manifest["benchmark_path"] != settings.DATASET_PATH or manifest["benchmark_count"] != 1000:
@@ -90,6 +93,11 @@ def run_benchmark(
     }
     if dataset_kind == "general_it":
         fingerprint_data["benchmark_sha256"] = benchmark_sha256
+    if rag_records is not None:
+        if set(rag_records) != {example.id for example in examples}:
+            raise ValueError("RAG contexts do not cover exactly the benchmark IDs")
+        fingerprint_data["rag_contexts_sha256"] = hashlib.sha256(
+            json.dumps(rag_records, sort_keys=True).encode("utf-8")).hexdigest()
     fingerprint = hashlib.sha256(json.dumps(fingerprint_data, sort_keys=True).encode("utf-8")).hexdigest()
     checkpoint = Checkpoint(predictions_path.parent / "progress.sqlite3", fingerprint, resume=resume)
 
@@ -113,6 +121,8 @@ def run_benchmark(
                 ]
                 for example in batch
             ]
+            if rag_records is not None:
+                messages = [rag_records[example.id]["messages"] for example in batch]
             answers = active_model.generate_batch(messages, settings.MAX_NEW_TOKENS)
             if len(answers) != len(batch) or any(not isinstance(answer, str) for answer in answers):
                 raise ValueError("Answer model returned an unexpected batch")
@@ -222,6 +232,17 @@ def run_benchmark(
     }
     if extra_metadata:
         summary.update(extra_metadata)
+    if rag_records is not None:
+        from collections import Counter
+        used = [r for example in examples for r in rag_records[example.id]["used_documents"]]
+        summary["retrieval_diagnostics"] = {
+            "average_documents_used": len(used) / len(examples),
+            "average_context_tokens": sum(rag_records[e.id]["context_tokens"] for e in examples) / len(examples),
+            "source_distribution": dict(Counter(r["source"] for r in used)),
+        }
+        for result in results:
+            result.rag = {key: value for key, value in rag_records[result.id].items()
+                          if key not in {"id", "question", "messages"}}
     write_results(predictions_path, metrics_path, results, summary)
     checkpoint.path.unlink()
     return summary

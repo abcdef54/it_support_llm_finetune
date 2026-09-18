@@ -13,11 +13,19 @@ from benchmark.finetuned import config as benchmark_config
 from benchmark.finetuned.model import inspect_adapter, load_finetuned_generator
 
 
-def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "dex_v2") -> dict:
+def run(project_root: Path, overwrite: bool = False, resume: bool = False, experiment: str = "dex_v2", rag: bool = False) -> dict:
     config = benchmark_config.for_experiment(experiment)
+    rag_records, rag_metadata = None, None
+    if rag:
+        if experiment != "dex_v2":
+            raise ValueError("RAG evaluation requires dex_v2 and the held-out general-IT benchmark")
+        from rag.prepare_benchmark import load_artifact
+        rag_records, rag_metadata = load_artifact(project_root)
+        config.PREDICTIONS_PATH = "results/finetuned_dex_v2_rag/predictions.jsonl"
+        config.METRICS_PATH = "results/finetuned_dex_v2_rag/metrics.json"
     adapter_path = project_root / config.ADAPTER_PATH
     adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
-                              expected_experiment=experiment if experiment in {"dex", "dex_v2"} else None)
+                              expected_experiment=experiment)
     return run_benchmark(
         project_root,
         settings=config,
@@ -29,7 +37,9 @@ def run(project_root: Path, overwrite: bool = False, resume: bool = False, exper
         reuse_answer_as_judge=False,
         overwrite=overwrite,
         resume=resume,
+        rag_records=rag_records,
         extra_metadata={
+            **({"rag": rag_metadata} if rag else {}),
             "adapter": {**adapter, "path": config.ADAPTER_PATH, "autocast_adapter_dtype": config.ADAPTER_AUTOCAST_DTYPE},
             "library_versions": {
                 package: version(package) for package in ("torch", "transformers", "peft", "accelerate", "bert-score")
@@ -43,7 +53,7 @@ def smoke(project_root: Path, experiment: str = "dex_v2") -> dict:
     config = benchmark_config.for_experiment(experiment)
     adapter_path = project_root / config.ADAPTER_PATH
     adapter = inspect_adapter(adapter_path, config.BASE_MODEL_ID, config.BASE_MODEL_REVISION,
-                              expected_experiment=experiment if experiment in {"dex", "dex_v2"} else None)
+                              expected_experiment=experiment)
     prompts = [
         [
             {"role": "system", "content": config.ANSWER_SYSTEM_PROMPT},
@@ -77,13 +87,16 @@ def smoke(project_root: Path, experiment: str = "dex_v2") -> dict:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the fine-tuned, no-RAG benchmark.")
+    parser = argparse.ArgumentParser(description="Run the fine-tuned benchmark with optional shared RAG contexts.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--resume", action="store_true", help="Continue a matching saved benchmark run")
+    parser.add_argument("--rag", action="store_true", help="Use the same saved contexts as Base + RAG")
     parser.add_argument("--smoke", action="store_true", help="Run a synthetic GPU smoke test without benchmark data or results")
-    parser.add_argument("--experiment", choices=("v1", "dex", "dex_v2"), default="dex_v2",
+    parser.add_argument("--experiment", choices=("dex", "dex_v2"), default="dex_v2",
                         help="Select adapter, benchmark, and result directory; dex_v2 uses the new general-IT test")
     args = parser.parse_args()
+    if args.smoke and args.rag:
+        parser.error("Use python -m rag.smoke for retrieval checks or python -m rag.query for explicit RAG generation")
     print(smoke(args.project_root.resolve(), args.experiment) if args.smoke else run(
-        args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, experiment=args.experiment))
+        args.project_root.resolve(), overwrite=args.overwrite, resume=args.resume, experiment=args.experiment, rag=args.rag))

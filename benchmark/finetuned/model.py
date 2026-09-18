@@ -25,8 +25,8 @@ def inspect_adapter(adapter_path: Path, model_id: str, revision: str, *, expecte
         raise ValueError("Adapter was not trained from the configured benchmark base model")
     if training.get("base_model_revision") != revision:
         raise ValueError("Adapter training revision differs from the pinned benchmark base revision")
-    # if expected_experiment and training.get("experiment") != expected_experiment:
-    #     raise ValueError(f"Adapter metadata does not identify the {expected_experiment} training experiment")
+    if expected_experiment and training.get("experiment") != expected_experiment:
+        raise ValueError(f"Adapter metadata does not identify the {expected_experiment} training experiment")
     targets = config.get("target_modules")
     if (config.get("peft_type") != "LORA" or config.get("task_type") != "CAUSAL_LM"
             or not isinstance(config.get("r"), int) or config["r"] < 1

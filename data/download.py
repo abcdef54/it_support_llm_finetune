@@ -9,33 +9,21 @@ from huggingface_hub import snapshot_download
 
 
 DATASETS = {
-    "finetune": (
-        "Tobi-Bueck/customer-support-tickets",
-        "ddf1c81a5475992c4fa6752bf1e8b4e31f07bbeb",
-    ),
     "evaluation": (
         "PrimeQA/TechQA",
         "60437bc79ab217679682217598a3693cab78365b",
     ),
-    "rag": (
-        "Console-AI/IT-helpdesk-synthetic-tickets",
-        "165693849d955c6da4c00bc8be8e541afec0514e",
-    ),
 }
 
 LICENSES = {
-    "finetune": "CC-BY-NC-4.0",
     "evaluation": "CDLA-Permissive-1.0",
-    "rag": "MIT",
 }
 
 SELECTED_INPUTS = {
-    "finetune": "aa_dataset-tickets-multi-lang-5-2-50-version.csv",
     "evaluation": [
         "TechQA/training_and_dev/training_Q_A.json",
         "TechQA/training_and_dev/dev_Q_A.json",
     ],
-    "rag": "tickets.csv",
 }
 
 

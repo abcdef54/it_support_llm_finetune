@@ -1,0 +1,519 @@
+{
+  "passed": true,
+  "index_fingerprint": "1724aa459778457dc0c8d1fc9cda2eda330b9c1873f053f5a7f2c332d5a74250",
+  "note": "Source-based retrieval checks only; not a held-out model benchmark",
+  "checks": [
+    {
+      "query": "Which ITM version supports the Linux KVM CANDLEDATA function?",
+      "passed": true,
+      "expected": "techqa:TRAIN_Q046",
+      "context_tokens": 781,
+      "input_tokens": 930,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "techqa:TRAIN_Q046",
+          "source": "techqa",
+          "score": 0.8392561078071594,
+          "title": null,
+          "question": "Does Linux KVM monitoring agent support CANDLEDATA function?\n\nDoes Linux KVM monitoring agent in ITM support CANDLEDATA function?"
+        },
+        {
+          "id": "techqa:TRAIN_Q100",
+          "source": "techqa",
+          "score": 0.6538631319999695,
+          "title": null,
+          "question": "Which version of TBSM support ITM 6.3?\n\nWhat is the TBSM version that is certified with ITM 6.3?"
+        },
+        {
+          "id": "techqa:TRAIN_Q360",
+          "source": "techqa",
+          "score": 0.6149823069572449,
+          "title": null,
+          "question": "Is it possible to monitor Memory/LPAR metrics using ITM HMC agent?\n\nI understand the ITM AIX Premium agent captures these metrics but like to know if it is possible to monitor Memory/LPAR metrics using ITM HMC agent?"
+        },
+        {
+          "id": "techqa:TRAIN_Q395",
+          "source": "techqa",
+          "score": 0.6038324236869812,
+          "title": null,
+          "question": "Does ITCAM for HTTP Server 7.1 FP4 work with IBM HTTP Server (IHS) 8.5.5.10 on AIX 7.2.x ?"
+        },
+        {
+          "id": "techqa:TRAIN_Q006",
+          "source": "techqa",
+          "score": 0.6016023755073547,
+          "title": null,
+          "question": "Is ITNM exposed to Apache CXF vulnerability (CVE-2017-3156)?\n\nIs ITNM versions are affected by Apache CXF vulnerability (CVE-2017-3156), If yes then what are all the version will be affected and where I can find the details?"
+        }
+      ]
+    },
+    {
+      "query": "WebSphere on Linux recommended ulimit settings",
+      "passed": true,
+      "expected": "techqa:TRAIN_Q012",
+      "context_tokens": 2338,
+      "input_tokens": 2481,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "techqa:TRAIN_Q012",
+          "source": "techqa",
+          "score": 0.9160943627357483,
+          "title": null,
+          "question": "Are there any instructions for ulimit settings for WebSphere running on Linux?"
+        },
+        {
+          "id": "stackoverflow:6180569",
+          "source": "stackoverflow",
+          "score": 0.6501919031143188,
+          "title": "Need to \"calculate\" optimum ulimit and fs.file-max values according to my own server needs",
+          "question": "Need to \"calculate\" optimum ulimit and fs.file-max values according to my own server needs. Please do not conflict with \"how to set those limits in various Linux distros\" questions. I am asking: Is there any good guide to explain in detail, parameters used for ulimit? (> 2.6 series kernels) Is there any good guide to show fs.file-max usage metrics? Actually there are some old reference i could find on the net: http://www.faqs.org/docs/securing/chap6sec72.html \"something reasonable like 256 for every 4M of RAM we have: i.e. for a machine with 128 MB of RAM, set it to 8192 - 128/4=32 32*256=8192\" Any up to date reference is appreciated."
+        },
+        {
+          "id": "stackoverflow:713161",
+          "source": "stackoverflow",
+          "score": 0.6363300681114197,
+          "title": "Strange garbage collection behaviour with Websphere Portal Server",
+          "question": "We're running a fairly complex app as a portlet on Websphere Portal Server 5.1 on AIX using IBM JDK 1.4.2. On our production system I can see a strange behaviour in the verbose GC logs. After a period of normal behaviour the system can start rapidly allocating larger and larger blocks. The system starts to spend > 1000 ms to complete each GC, but blocks are being allocated so quickly that there is only a 30 ms gap between allocation failures. Each allocation failure slightly larger than the last by some integer amount x 1024 bytes. E.g. you might have 5 MB, and then a short while later 5 MB + 17 * 1024. This can go on for up to 10 minutes. The blocks tend to grow up to 8 to 14 MB in size before it stops. It's a quad-core system, and I assume that it's now spending >95% of it's time doing GC with three cores waiting for the other core to complete GC. For 10 minutes. Ouch. Obviously system performance dies at this point. We have JSF, hibernate & JDBC, web services calls, log4j output and not much else. I interpret this as likely to be something infrastructural rather than our application code. If it was a bad string concatenation inside a loop we would expect more irregular growth than blocks of 1024. If it was StringBuffer or ArrayList growth we would see the block sizes doubling. The growth is making me think of log buffering or something else. I can't think of anything in our app that allocations even 1 MB, let alone 14. Today I looked for logging backing up in memory before being flushed to disk, but the volume of logging statements over this period of GC thrashing was nowhere near the MB range. Clearly the problem is with the excessive memory allocation rather than with the garbage collection, which is just doing its best to keep up. Something is allocating a large block and trying to grow it inefficiently in increments that are far too small. Any ideas what might be causing all this when the system is under load? Anybody seen anything similar with Portal Server? Note: for anybody who's interested it's starting to look like the cause is an occasional but enormous database query. It seems the culprit is either Hibernate or the JDBC driver."
+        },
+        {
+          "id": "techqa:TRAIN_Q039",
+          "source": "techqa",
+          "score": 0.6319898366928101,
+          "title": null,
+          "question": "How to remove the default -Xcompressedrefs from my WebSphere Application Server\n\nMy understanding is that for performance reasons, the WebSphere Application server on 64bit JVMs is, by default, using compressed references (-Xcompressedrefs). Due to native OutOfMemory error, I would like to remove that default, so there is no such limitation imposed on my native memory size."
+        },
+        {
+          "id": "stackoverflow:3566240",
+          "source": "stackoverflow",
+          "score": 0.6290929317474365,
+          "title": "WebSphere 7 SSL error that never goes away no matter what I do?",
+          "question": "I installed WebSphere 7.0 and RAD 7.5. Updated WAS to fix pack 11 and update RAD. 7.5.5. latest updates..etc... I create a server profile. I start the server. I turn on global security and use LDAP. (something I have done a billion times) I don't even attempt to publish an application. The server constantly debugs out this message every two minutes. How do you make it stop? I have tried making new keys doesn't work, I blow away the profile and make a new one. Nothing works. Nothing. The server is running at 400 MB without an application installed. Is this supposed to be normal? 400 MB with no app published? The server profile creation wizard forces this SSL nonsense into the config. What's really going on here? I would love to utilize the latest server technology IBM has to offer but it seems to be broken right out of the box, out of the gate. 5 fix packs later and it's still broken. [8/25/10 8:12:44:896 CDT] 0000000b SSLHandshakeE E SSLC0008E: Unable to initialize SSL connection. Unauthorized access was denied or security settings have expired. Exception is javax.net.ssl.SSLException: Unrecognized SSL message, plaintext connection? at com.ibm.jsse2.b.a(b.java:34) at com.ibm.jsse2.pc.a(pc.java:155) at com.ibm.jsse2.pc.unwrap(pc.java:104) at javax.net.ssl.SSLEngine.unwrap(SSLEngine.java:17) at com.ibm.ws.ssl.channel.impl.SSLConnectionLink.readyInbound(SSLConnectionLink.java:531) at com.ibm.ws.ssl.channel.impl.SSLConnectionLink.ready(SSLConnectionLink.java:291) at com.ibm.ws.tcp.channel.impl.NewConnectionInitialReadCallback.sendToDiscriminators(NewConnectionInitialReadCallback.java:214) at com.ibm.ws.tcp.channel.impl.NewConnectionInitialReadCallback.complete(NewConnectionInitialReadCallback.java:113) at com.ibm.ws.tcp.channel.impl.AioReadCompletionListener.futureCompleted(AioReadCompletionListener.java:165) at com.ibm.io.async.AbstractAsyncFuture.invokeCallback(AbstractAsyncFuture.java:217) at com.ibm.io.async.AsyncChannelFuture.fireCompletionActions(AsyncChannelFuture.java:161) at com.ibm.io.async.AsyncFuture.completed(AsyncFuture.java:138) at com.ibm.io.async.ResultHandler.complete(ResultHandler.java:204) at com.ibm.io.async.ResultHandler.runEventProcessingLoop(ResultHandler.java:775) at com.ibm.io.async.ResultHandler$2.run(ResultHandler.java:905) at com.ibm.ws.util.ThreadPool$Worker.run(ThreadPool.java:1550)"
+        }
+      ]
+    },
+    {
+      "query": "Can a TIP 2.2 fix pack be applied directly to TIP 2.1?",
+      "passed": true,
+      "expected": "techqa:TRAIN_Q013",
+      "context_tokens": 1086,
+      "input_tokens": 1240,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "techqa:TRAIN_Q013",
+          "source": "techqa",
+          "score": 0.8730493187904358,
+          "title": null,
+          "question": "Can I apply a TIP 2.2 fix pack directly to a TIP 2.1 installation?"
+        },
+        {
+          "id": "techqa:TRAIN_Q501",
+          "source": "techqa",
+          "score": 0.6456109881401062,
+          "title": null,
+          "question": "Is there a way to force the Tivoli Integrated Portal (TIP) fix pack installer to use a different temp location?"
+        },
+        {
+          "id": "techqa:DEV_Q234",
+          "source": "techqa",
+          "score": 0.6227438449859619,
+          "title": null,
+          "question": "TCR 2.1.1 Fixpack 2 installation failed\n\nI need to install Fixpack 2 on my TCR 2.1.1 environment, but the installation keeps failing with error:\n\nACUOSI0050E External command action failed with return code 1.\n\nI was not able to understand why it is failing. Can you please help providing suggestion to perform a correct troubleshooting ?\n\nThanks"
+        },
+        {
+          "id": "techqa:DEV_Q013",
+          "source": "techqa",
+          "score": 0.6114453077316284,
+          "title": null,
+          "question": "Additional steps to apply fix pack to Decision Center\n\nWe are upgrading ODM 8.8.1 Decision Center to the latest 8.8.1.3.\n\nAre there any additional steps to apply the fixpack to Decision Center after we install the fixpack with Installation Manager?"
+        },
+        {
+          "id": "stackoverflow:4066571",
+          "source": "stackoverflow",
+          "score": 0.6064307689666748,
+          "title": "Using custom packages on my python project",
+          "question": "I'm doing a few projects in python right now, and I'm trying to figure out how to work with my own versions of existing open source packages. For instance, I'm using tipfy with zc.buildout, and I've added in the 'paypal' package. Unfortunately it doesn't have a feature I need, so I've forked it on github and added the feature. I will send the original package maintainers a pull request, but whether they accept my additions or not, I'd like to use my version of the package and keep the convenience of having zc.buildout manage my dependencies. How do I do this? Do I upload my own take on the library to PyPI and prefix it with my name? Wouldn't that unnecessarily pollute the index? Or should I make and maintain my own index and package repo? Where do I find the format for this? And is it against to terms of the OSS licenses to host my own repo with modified packages with the same names? (I'd rather not modify every file in the project with new namespaces) I'm sure this problem comes up quite a lot, and not just with python. I can see this happening with Maven and SBT, too... what do people usually do when they want to use their own versions of popular packages?"
+        }
+      ]
+    },
+    {
+      "query": "SPSS Statistics Subscription installer unsupported on Mac OS X 10.9.5",
+      "passed": true,
+      "expected": "techqa:TRAIN_Q154",
+      "context_tokens": 878,
+      "input_tokens": 1030,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "techqa:TRAIN_Q154",
+          "source": "techqa",
+          "score": 0.8518642783164978,
+          "title": null,
+          "question": "IBM SPSS Statistics Subscription Installer not supported on Mac OS version OS X 10.9.5\n\nAttempted several times to install IBM SPSS statistics subscription installer. Followed online instructions to double click the blue and white statisticsSub_Installer and click open. The result a message installer not supported OS version. Attempted to turn off fire wall and install without success. Suggestions?"
+        },
+        {
+          "id": "techqa:TRAIN_Q186",
+          "source": "techqa",
+          "score": 0.7416286468505859,
+          "title": null,
+          "question": "IBM SPSS Statistics 25.0.0.1 MacOS 10.13 High Sierra.\n\nWill the german IBM SPSS statistics 25.0.0.1 on MAC be compatible with MAC OS High Sierra (10.13)?"
+        },
+        {
+          "id": "techqa:TRAIN_Q582",
+          "source": "techqa",
+          "score": 0.7369584441184998,
+          "title": null,
+          "question": "Problems downloading SPSS Statistics Premium Grad Pack v.24- Mac\n\nPurchased SPSS Statistics Premium Grad Pack v.24. for Mac from THINKedu.com. Have tried a dozen times to download it but fails. Tried using wifi, direct ethernet connection, Firefox, Safari, and Chrome incognito, with no other programs running in background. Have purchased previous versions from another vendor multiple times without an issue. THINKedu would not offer additional support, directing me to contact IBM instead. IBM Software Support @ (919) 864-3512 said \"there is no phone support for students for SPSS\" and directed me to ask a question here instead. Saw a suggestion for an installer on another post; seems to lead to a trial version- is that the best idea?"
+        },
+        {
+          "id": "techqa:TRAIN_Q579",
+          "source": "techqa",
+          "score": 0.7345919609069824,
+          "title": null,
+          "question": "Trouble downloading SPSS Statistics free trial\n\nI am trying to download the free trial version of SPSS Statistics version 24. I'm a graduate student and want to try it out on my Mac OS X 10.9.5 laptop. However, when I get to the \"confirm\" part, it keeps showing me an error message saying \"can't save profile.\" How do you go about fixing this and getting it installed? Thanks!"
+        },
+        {
+          "id": "techqa:TRAIN_Q555",
+          "source": "techqa",
+          "score": 0.7152206301689148,
+          "title": null,
+          "question": "SPSS free trial not working on MAC - gets stuck in when it should be launching and goes nowhere\n\nI downloaded the SPSS software on my mac running Yosemite 10.10.5. The trial was activated by IBM, they sent me several emails stating this.\n\nSo I tried to launch the app and get stuck here alt text There is no progress after an hour; and I tried to launch several times, it never gets out of this screen."
+        }
+      ]
+    },
+    {
+      "query": "SSH permission denied publickey authentication fails",
+      "passed": true,
+      "expected": [
+        "ssh"
+      ],
+      "context_tokens": 1853,
+      "input_tokens": 1995,
+      "documents_used": 4,
+      "results": [
+        {
+          "id": "stackoverflow:1454629",
+          "source": "stackoverflow",
+          "score": 0.7845569849014282,
+          "title": "AWS ssh access 'Permission denied (publickey)' issue",
+          "question": "How to connect to a AWS instance through ssh? I have: Signed up at AWS; Created a public key and a certificate at AWS website and saved them to disk; Went to my console and created environment variables: $ export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/ $ export EC2_CERT=/home/default/aws/cert-EBAINCRNWHDSCWWIHSOKON2YWGJZ5LSQ.pem $ export EC2_PRIVATE_KEY=/home/default/aws/pk-EBAINCRNWHDSCWWIHSOKON2YWGJZ5LSQ.pem Told AWS API to use this keypair and saved the keypair to file: $ ec2-add-keypair ec2-keypair > ec2-keypair.pem Started an AWS Ubuntu 9 instance using this keypair: $ ec2-run-instances ami-ed46a784 -k ec2-keypair Attempted to establish a ssh connection to the instance: $ ssh -v -i ec2-keypair.pem ubuntu@ec2-174-129-185-190.compute-1.amazonaws.com OpenSSH_5.1p1 Debian-5ubuntu1, OpenSSL 0.9.8g 19 Oct 2007 debug1: Reading configuration data /etc/ssh/ssh_config debug1: Applying options for * debug1: Connecting to ec2-174-129-185-190.compute-1.amazonaws.com [174.129.185.190] port 22. debug1: Connection established. debug1: identity file ec2-keypair.pem type -1 debug1: Remote protocol version 2.0, remote software version OpenSSH_5.1p1 Debian-5ubuntu1 debug1: match: OpenSSH_5.1p1 Debian-5ubuntu1 pat OpenSSH* debug1: Enabling compatibility mode for protocol 2.0 debug1: Local version string SSH-2.0-OpenSSH_5.1p1 Debian-5ubuntu1 debug1: SSH2_MSG_KEXINIT sent debug1: SSH2_MSG_KEXINIT received debug1: kex: server->client aes128-cbc hmac-md5 none debug1: kex: client->server aes128-cbc hmac-md5 none debug1: SSH2_MSG_KEX_DH_GEX_REQUEST(1024<1024<8192) sent debug1: expecting SSH2_MSG_KEX_DH_GEX_GROUP debug1: SSH2_MSG_KEX_DH_GEX_INIT sent debug1: expecting SSH2_MSG_KEX_DH_GEX_REPLY debug1: Host 'ec2-174-129-185-190.compute-1.amazonaws.com' is known and matches the RSA host key. debug1: Found key in /home/default/.ssh/known_hosts:11 debug1: ssh_rsa_verify: signature correct debug1: SSH2_MSG_NEWKEYS sent debug1: expecting SSH2_MSG_NEWKEYS debug1: SSH2_MSG_NEWKEYS received debug1: SSH2_MSG_SERVICE_REQUEST sent debug1: SSH2_MSG_SERVICE_ACCEPT received debug1: Authentications that can continue: publickey debug1: Next authentication method: publickey debug1: Trying private key: ec2-keypair.pem debug1: read PEM private key done: type RSA debug1: Authentications that can continue: publickey debug1: No more authentication methods to try. Permission denied (publickey). What could be the problem and how to make it work?"
+        },
+        {
+          "id": "stackoverflow:3858928",
+          "source": "stackoverflow",
+          "score": 0.7842965722084045,
+          "title": "Git SSH setup Permission denied (publickey)",
+          "question": "I'm using a VWWare image of Ubuntu 8.04 and experiencing problems while setting up git access over SSH I get the following output debug1: Authentications that can continue: publickey debug1: Next authentication method: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Trying private key: /home/jars/.ssh/identity debug1: PEM_read_PrivateKey failed debug1: read PEM private key done: type Enter passphrase for key '/home/jars/.ssh/identity': debug1: read PEM private key done: type RSA debug1: Authentications that can continue: publickey debug1: No more authentication methods to try. Permission denied (publickey). I have generated the keys with ssh-keygen -t rsa and renamed them to identity (private) and ida_rsa (public), because initially they wheren't found by ssh. I also created a config file as depicted here... http://help.github.com/troubleshooting-ssh/ Nothing changed. Am I missing something or is there generally something wrong with using SSH in VMWare? Regards"
+        },
+        {
+          "id": "stackoverflow:2696487",
+          "source": "stackoverflow",
+          "score": 0.7525469660758972,
+          "title": "ssh permission denied",
+          "question": "I am trying to ssh into a remote machine and I get the following debug messages: debug1: Reading configuration data /etc/ssh/ssh_config debug1: Applying options for * debug2: ssh_connect: needpriv 0 debug1: Connecting to xxx.xxx.x.xx [xxx.xxx.xx.x] port 22. debug1: Connection established. debug3: Not a RSA1 key file /home/hadoop/.ssh/id_rsa. debug2: key_type_from_name: unknown key type '-----BEGIN' debug3: key_read: missing keytype debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug3: key_read: missing whitespace debug2: key_type_from_name: unknown key type '-----END' debug3: key_read: missing keytype debug1: identity file /home/hadoop/.ssh/id_rsa type 1 debug1: Checking blacklist file /usr/share/ssh/blacklist.RSA-2048 debug1: Checking blacklist file /etc/ssh/blacklist.RSA-2048 debug1: Remote protocol version 2.0, remote software version OpenSSH_5.1p1 Debian-6ubuntu2 debug1: match: OpenSSH_5.1p1 Debian-6ubuntu2 pat OpenSSH* debug1: Enabling compatibility mode for protocol 2.0 debug1: Local version string SSH-2.0-OpenSSH_5.1p1 Debian-6ubuntu2 debug2: fd 3 setting O_NONBLOCK debug1: SSH2_MSG_KEXINIT sent debug1: SSH2_MSG_KEXINIT received debug2: kex_parse_kexinit: diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1,diffie-hellman-group1-sha1 debug2: kex_parse_kexinit: ssh-rsa,ssh-dss debug2: kex_parse_kexinit: aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,arcfour256,arcfour,aes192-cbc,aes256-cbc,rijndael-cbc@lysator.liu.se,aes128-ctr,aes192-ctr,aes256-ctr debug2: kex_parse_kexinit: aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,arcfour256,arcfour,aes192-cbc,aes256-cbc,rijndael-cbc@lysator.liu.se,aes128-ctr,aes192-ctr,aes256-ctr debug2: kex_parse_kexinit: hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-ripemd160@openssh.com,hmac-sha1-96,hmac-md5-96 debug2: kex_parse_kexinit: hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-ripemd160@openssh.com,hmac-sha1-96,hmac-md5-96 debug2: kex_parse_kexinit: none,zlib@openssh.com,zlib debug2: kex_parse_kexinit: none,zlib@openssh.com,zlib debug2: kex_parse_kexinit: debug2: kex_parse_kexinit: debug2: kex_parse_kexinit: first_kex_follows 0 debug2: kex_parse_kexinit: reserved 0 debug2: kex_parse_kexinit: diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1,diffie-hellman-group1-sha1 debug2: kex_parse_kexinit: ssh-rsa,ssh-dss debug2: kex_parse_kexinit: aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,arcfour256,arcfour,aes192-cbc,aes256-cbc,rijndael-cbc@lysator.liu.se,aes128-ctr,aes192-ctr,aes256-ctr debug2: kex_parse_kexinit: aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,arcfour256,arcfour,aes192-cbc,aes256-cbc,rijndael-cbc@lysator.liu.se,aes128-ctr,aes192-ctr,aes256-ctr debug2: kex_parse_kexinit: hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-ripemd160@openssh.com,hmac-sha1-96,hmac-md5-96 debug2: kex_parse_kexinit: hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-ripemd160@openssh.com,hmac-sha1-96,hmac-md5-96 debug2: kex_parse_kexinit: none,zlib@openssh.com debug2: kex_parse_kexinit: none,zlib@openssh.com debug2: kex_parse_kexinit: debug2: kex_parse_kexinit: debug2: kex_parse_kexinit: first_kex_follows 0 debug2: kex_parse_kexinit: reserved 0 debug2: mac_setup: found hmac-md5 debug1: kex: server->client aes128-cbc hmac-md5 none debug2: mac_setup: found hmac-md5 debug1: kex: client->server aes128-cbc hmac-md5 none debug1: SSH2_MSG_KEX_DH_GEX_REQUEST(1024<1024<8192) sent debug1: expecting SSH2_MSG_KEX_DH_GEX_GROUP debug2: dh_gen_key: priv key bits set: 128/256 debug2: bits set: 511/1024 debug1: SSH2_MSG_KEX_DH_GEX_INIT sent debug1: expecting SSH2_MSG_KEX_DH_GEX_REPLY debug3: check_host_in_hostfile: filename /home/hadoop/.ssh/known_hosts debug3: check_host_in_hostfile: match line 20 debug1: Host '192.168.1.63' is known and matches the RSA host key. debug1: Found key in /home/hadoop/.ssh/known_hosts:20 debug2: bits set: 511/1024 debug1: ssh_rsa_verify: signature correct debug2: kex_derive_keys debug2: set_newkeys: mode 1 debug1: SSH2_MSG_NEWKEYS sent debug1: expecting SSH2_MSG_NEWKEYS debug2: set_newkeys: mode 0 debug1: SSH2_MSG_NEWKEYS received debug1: SSH2_MSG_SERVICE_REQUEST sent debug2: service_accept: ssh-userauth debug1: SSH2_MSG_SERVICE_ACCEPT received debug2: key: /home/hadoop/.ssh/id_rsa (0x241c110) debug1: Authentications that can continue: publickey,password debug3: start over, passed a different list publickey,password debug3: preferred gssapi-keyex,gssapi-with-mic,gssapi,publickey,keyboard-interactive debug3: authmethod_lookup publickey debug3: remaining preferred: keyboard-interactive debug3: authmethod_is_enabled publickey debug1: Next authentication method: publickey debug1: Offering public key: /home/hadoop/.ssh/id_rsa debug3: send_pubkey_test debug2: we sent a publickey packet, wait for reply debug1: Authentications that can continue: publickey,password debug2: we did not send a packet, disable method debug1: No more authentication methods to try. Permission denied (publickey,password). What seems to be the problem?? I have tried everything, this is driving me nuts."
+        },
+        {
+          "id": "stackoverflow:3481973",
+          "source": "stackoverflow",
+          "score": 0.7179281115531921,
+          "title": "Heroku error: \"Permission denied (public key)\"",
+          "question": "I keep getting this error. I am using Mac. I generated a key and added it to heroku using heroku config:add key=\"ssh-rsa blahblah=me@me.com\" But this doesn't work. I keep getting the same error. Short of reinstalling ssh-keygen, what can I do about this?"
+        },
+        {
+          "id": "stackoverflow:2546005",
+          "source": "stackoverflow",
+          "score": 0.7145788669586182,
+          "title": "Git and ssh authorizating",
+          "question": "I can't login to github with generated ssh-keys. I've followed this manual: http://help.github.com/linux-key-setup but at step: ssh git@github.com I get: Agent admitted failure to sign using the key. Permission denied (publickey). What's wroing? And, of course, I'm adding my own user email. Tried dsa-key, the same thing."
+        }
+      ]
+    },
+    {
+      "query": "Linux file permissions chmod access denied",
+      "passed": true,
+      "expected": [
+        "permission",
+        "chmod"
+      ],
+      "context_tokens": 1778,
+      "input_tokens": 1919,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "stackoverflow:5977556",
+          "source": "stackoverflow",
+          "score": 0.7440792322158813,
+          "title": "how can I change the permissions of a linux socket file?",
+          "question": "I have a program which creates a socket, and then I want to change the permissions of the socket file: ret_val = chmod(filename, 0777);, but it doesn't change, even though ret_val will be 0. If I try the same thing on a regular file, it works. Any ideas? P.S: I am running the program as root, so it has all the authority needed."
+        },
+        {
+          "id": "stackoverflow:2003177",
+          "source": "stackoverflow",
+          "score": 0.7338135242462158,
+          "title": "Unix suid bit problem",
+          "question": "I have written a program in c, that do some calculations then creates a folder. That folder's owner is the root user. With an other user I am trying to run this c application. I've got this error: mkdir: lol: Permission denied Ok, I know this error is ok, because I don't have rights for it, but I have read on the internet, that if I set the suid bit on the file, then this file will run with the owner's rights. I've used this command: chmod +s filename But it isn't working...:( Any ideas? EDIT: So, first of all, my Unix distribution is a Mac OS X 10.5.8. And my filename is a.out, since I have compiled it from ic.c with the command: gcc ic.c And I am running the chmod command with the root user."
+        },
+        {
+          "id": "stackoverflow:4965561",
+          "source": "stackoverflow",
+          "score": 0.714805006980896,
+          "title": "How to change Unix permissions when I don't own the file but do have write permission on the directory?",
+          "question": "I'm sharing a git repository with a colleague, and because git does not propagate the full panoply of Unix file permissions, we have a \"hook\" that runs on update which sets the 'other' permissions as they need to be set. The problem? The hook uses chmod, and it turns out that when my colleague commits a file, he owns it, so I can't run chmod on it, and vice versa. The directories are all group writable, sticky, so I believe that either of us has the right to remove any file and replace it with one of the same name, same contents, but different ownership. Presumably then we could chmod it. But this seems like an awfully big hammer, and I'm a bit leery of screwing it up. So, two questions: Can anybody think of another way to do it? If not, what's the best design for a bulletproof shell script that implements \"make this file belong to me\"? No cross-filesystem moves, etc etc... For those who may not have realized, write permission does not confer permission to chmod: % ls -l value.c -rw-rw---- 1 agallant ta105 133 Feb 10 13:37 value.c % [ -w value.c ] && echo writeable writeable % chmod o+r value.c chmod: changing permissions of `value.c': Operation not permitted We are both in the ta105 group. Notes: We're using git not only to coordinate changes but to publish the repo as a course web site. Publishing the web site is the primary purpose of the repo. The permissions script runs at every update using a git hook, and it ensures that students do not have permission to read solutions that have not yet been unveiled. Please do not suggest that I have the wrong umask. Not all files in the repo should have the same permissions, and whatever umask is chosen, permissions on some files will need to be changed. Not to mention that it would be discourteous for me to impose my umask preferences on my colleagues. UPDATE: I've just learned that in our environment, root is quashed to nobody on all machines we have access to, so that a solution which relies on root privileges won't work."
+        },
+        {
+          "id": "stackoverflow:2539710",
+          "source": "stackoverflow",
+          "score": 0.7074153423309326,
+          "title": "How to change/show permissions in C",
+          "question": "I am new to C programming and I'd like to implement chmod command on files of a dir and subdir. How can I change/show permissions with a C code? Could someone help with a example? I would appreciate if anyone can provide me a code."
+        },
+        {
+          "id": "stackoverflow:1592303",
+          "source": "stackoverflow",
+          "score": 0.702355682849884,
+          "title": "Changing permissions via chmod at runtime errors with \"Operation not permitted\"",
+          "question": "When I use chmod() to change permissions at run time, it gives me the below message: Warning: chmod() [function.chmod]: Operation not permitted in /home/loud/public_html/readalbum.php How can I remove this error and make the chmod function work?"
+        }
+      ]
+    },
+    {
+      "query": "DNS resolution fails hostname lookup",
+      "passed": true,
+      "expected": [
+        "dns",
+        "hostname"
+      ],
+      "context_tokens": 2227,
+      "input_tokens": 2367,
+      "documents_used": 4,
+      "results": [
+        {
+          "id": "stackoverflow:3164973",
+          "source": "stackoverflow",
+          "score": 0.7284824848175049,
+          "title": ".NET: Why does this domain not resolve?",
+          "question": "I am trying to programmatically test if a given domain name exists. The following line of code works as expected: IPHostEntry IPhst =Dns.GetHostEntry(\"google.com\"); But it fails for some few domains on the very same host at the very same time. For example, the following throws an exception. IPHostEntry IPhst =Dns.GetHostEntry(\"bks-campus.ch\"); The resulting exception is identical to exceptions that are thrown when the domain name does not exist at all. The weird thing is that the domain actually exists. I am able to browse it from the same machine that just ran the code above. What might be the problem here and how can I work around this? Edit: Dig also agrees that this domain name actually exists: dig bks-campus.ch; <<>> DiG 9.5.0-P2 <<>> bks-campus.ch;; global options: printcmd;; Got answer:;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14744;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 0;; QUESTION SECTION:;bks-campus.ch. IN A;; AUTHORITY SECTION: bks-campus.ch. 3600 IN SOA dns1.bks-campus.ch. hostmaster.kanti-chur.ch. 1275546863 10800 3600 604800 86400;; Query time: 1214 msec;; SERVER: 192.168.0.1#53(192.168.0.1);; WHEN: Fri Jul 2 12:50:10 2010;; MSG SIZE rcvd: 94"
+        },
+        {
+          "id": "stackoverflow:4555026",
+          "source": "stackoverflow",
+          "score": 0.7011773586273193,
+          "title": "Repeated host lookups failing in urllib2",
+          "question": "I have code which issues many HTTP GET requests using Python's urllib2, in several threads, writing the responses into files (one per thread). During execution, it looks like many of the host lookups fail (causing a name or service unknown error, see appended error log for an example). Is this due to a flaky DNS service? Is it bad practice to rely on DNS caching, if the host name isn't changing? I.e. should a single lookup's result be passed into the urlopen? Exception in thread Thread-16: Traceback (most recent call last): File \"/usr/lib/python2.6/threading.py\", line 532, in __bootstrap_inner self.run() File \"/home/da/local/bin/ThreadedDownloader.py\", line 61, in run page = urllib2.urlopen(url) # get the page File \"/usr/lib/python2.6/urllib2.py\", line 126, in urlopen return _opener.open(url, data, timeout) File \"/usr/lib/python2.6/urllib2.py\", line 391, in open response = self._open(req, data) File \"/usr/lib/python2.6/urllib2.py\", line 409, in _open '_open', req) File \"/usr/lib/python2.6/urllib2.py\", line 369, in _call_chain result = func(*args) File \"/usr/lib/python2.6/urllib2.py\", line 1170, in http_open return self.do_open(httplib.HTTPConnection, req) File \"/usr/lib/python2.6/urllib2.py\", line 1145, in do_open raise URLError(err) URLError: UPDATE my (extremely simple) code class AsyncGet(threading.Thread):\n\ndef __init__(self,outDir,baseUrl,item,method,numPages,numRows,semaphore): threading.Thread.__init__(self) self.outDir = outDir self.baseUrl = baseUrl self.method = method self.numPages = numPages self.numRows = numRows self.item = item self.semaphore = semaphore\n\ndef run(self): with self.semaphore: # 'with' is awesome. with open( os.path.join(self.outDir,self.item+\".xml\"), 'a' ) as f: for i in xrange(1,self.numPages+1): url = self.baseUrl + \\ \"method=\" + self.method + \\ \"&item=\" + self.item + \\ \"&page=\" + str(i) + \\ \"&rows=\" + str(self.numRows) + \\ \"&prettyXML\" page = urllib2.urlopen(url) f.write(page.read()) page.close() # Must remember to close! The semaphore is a BoundedSemaphore to constrain the total number of running threads."
+        },
+        {
+          "id": "stackoverflow:2671498",
+          "source": "stackoverflow",
+          "score": 0.7004549503326416,
+          "title": "nslookup for C# and C++ to resolve a host using a specific Server",
+          "question": "I need to resolve a hostname using a specific DNS server like you would in nslookup C:\\>nslookup hotname 192.100.10.10 Server: UnKnown Address: 192.100.10.10\n\nName: hostname.host Address: 192.100.10.14 But of course in return I don't just want the address I want all the values for Server, Address, Name and Address I have looked at the System.Net.Dns Class but that only gives me the Resolved IP Address and doesn't let me select the DNS Server of my choosing If any one has done this before and you can help me with this. Edit: Found One for C#: http://www.simpledns.com/dns-client-lib.aspx Here is a snippet of my code just for some entertainment //Buy him Cookies and Strippers using JHSoftware;"
+        },
+        {
+          "id": "stackoverflow:995808",
+          "source": "stackoverflow",
+          "score": 0.6980534195899963,
+          "title": "Dns.GetHostEntry returns multiple IP addresses",
+          "question": "This question probably highlights a lack of understanding of networking principals on my part, rather than a programming issue. I'm doing a lookup on a hostname using Dns.GetHostEntry This returns an IPHostEntry to me, which has an AddressList property which is an array of IPAddress. I always thought there is a 1 to 1 mapping between hostname and IP, but I'm finding that in some cases I get back several IPAddress(es) for the same host. This is a surprise to me. Which part of domain name resolution do I not understand?"
+        },
+        {
+          "id": "stackoverflow:2215203",
+          "source": "stackoverflow",
+          "score": 0.6958280801773071,
+          "title": "VB6 Lookup Hostname From IP, Specifying DNS Server",
+          "question": "I know how to look up a hostname from an IPv4 in VB using the GetHostByAddr Windows API call ( this works great). However, that function does not allow one to specify the DNS server to use. Sometimes the default company DNS servers are fine, but other times I need to specify an external DNS server for lookups, and I don't think doing a shell nslookup and parsing the output is the best method, here. Note: this is actually going to be used as VBA code in an Excel workbook to help someone else do his job, and it's not worth writing a big application when some simple functionality is all he needs. I thought I had possibly found an answer in the API call getnameinfo but careful reading seems to indicate it does not offer a servername parameter. After some intense searching, I found reference to the pExtra parameter to the DNSQuery function. But I don't even know how to begin to use that in VB6. Could anyone help me out in any way with doing a DNS lookup from VB6, specifying the servername to use? A full working solution would of course be nice, but I'm willing to work: just point me in the right direction. UPDATE: For some odd reason it didn't click that DNSQuery was a Windows API call. It just didn't sound like one. I certainly would have been able to make more headway on the problem if I'd gathered that one tiny detail."
+        }
+      ]
+    },
+    {
+      "query": "PostgreSQL connection refused cannot connect",
+      "passed": true,
+      "expected": [
+        "postgres"
+      ],
+      "context_tokens": 1959,
+      "input_tokens": 2100,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "stackoverflow:4465475",
+          "source": "stackoverflow",
+          "score": 0.7349985837936401,
+          "title": "Where is the Postgresql config file: 'postgresql.conf' on Windows?",
+          "question": "I'm receiving this message but I can't find the postgresql.conf file: OperationalError: could not connect to server: Connection refused (0x0000274D/10061) Is the server running on host \"???\" and accepting TCP/IP connections on port 5432? could not connect to server: Connection refused (0x0000274D/10061) Is the server running on host \"???\" and accepting TCP/IP connections on port 5432?"
+        },
+        {
+          "id": "techqa:TRAIN_Q137",
+          "source": "techqa",
+          "score": 0.709947407245636,
+          "title": null,
+          "question": "What could cause a \"Connection refused\" to SQLDB/DB2 after some time?\n\nI have deployed an WAS Liberty/ JPA application. Everything is fine, and after a while (a day or 2), I get the connection refused exception: java.sql.SQLNonTransientException: [jcc][t4][2043][11550][4.14.103] Exception java.net.ConnectException: Error opening socket to server /XX.XXX.XXX.XXXon port 50,000 with message: Connection refused. ERRORCODE=-4499, SQLSTATE=08001 DSRA0010E: SQL State = 08001, Error Code = -4,499\nAny idea what could cause this issue?"
+        },
+        {
+          "id": "stackoverflow:5305235",
+          "source": "stackoverflow",
+          "score": 0.6866106390953064,
+          "title": "Cannot connect to PostgreSQL using C++",
+          "question": "I am trying to run PostgreSQL on my mac. PostgreQL itself works fine and I can create database and table and stuff but when I try to connect to PostgreSQL using C++ with something like: #include #include #include int main() { PGconn *conn; PGresult *res; int rec_count;\n\nconn = PQconnectdb(\"dbname=ljdata host=localhost user=dataman);\n\nif (PQstatus(conn) == CONNECTION_BAD) { puts(\"We were unable to connect to the database\"); exit(0); }\n\nres = PQexec(conn, \"update people set phonenumber=\\'5055559999\\' where id=3\"); and compile with something like: g++ -lpq db.cpp -o db I get the error ld: library not found for -lpq and if I compile without lpq, I get Undefined symbols: \"_PQclear\", referenced from: _main in ccpjNCAU.o _main in ccpjNCAU.o\" I have already included the libpq-fe.h, shouldn't it work? Does anybody know what went wrong?"
+        },
+        {
+          "id": "stackoverflow:5013764",
+          "source": "stackoverflow",
+          "score": 0.6813299059867859,
+          "title": "Java Networking Problem: java.net.ConnectException: Connection refused: connect",
+          "question": "I am unable to do any networking in Java when i run a simple networking program i am unable to get a connection, even when using the local host, The Error: java.net.ConnectException: Connection refused: connect at java.net.PlainSocketImpl.socketConnect(Native Method) at java.net.PlainSocketImpl.doConnect(Unknown Source) at java.net.PlainSocketImpl.connectToAddress(Unknown Source) at java.net.PlainSocketImpl.connect(Unknown Source) at java.net.SocksSocketImpl.connect(Unknown Source) at java.net.Socket.connect(Unknown Source) at java.net.Socket.connect(Unknown Source) at java.net.Socket. (Unknown Source) at java.net.Socket. (Unknown Source) at EchoClient.main(EchoClient.java:8) This is the program: import java.io.*; import java.net.*; import java.util.*;\n\npublic class EchoClient{ public static void main(String[] args) { try{ Socket client = new Socket(InetAddress.getLocalHost(), 1234); InputStream clientIn = client.getInputStream(); OutputStream clientOut = client.getOutputStream(); PrintWriter pw = new PrintWriter(clientOut); BufferedReader br = new BufferedReader(new InputStreamReader(clientIn)); Scanner stdIn = new Scanner(System.in); System.out.println(\"Input Message:\"); pw.println(stdIn.nextLine()); System.out.println(\"Recieved Message:\"); System.out.println(br.readLine()); pw.close(); br.close(); client.close(); }catch(Exception e){ e.printStackTrace(); } } } I use windows 7, i have turned of windows firewall and i dont have an anti virus."
+        },
+        {
+          "id": "stackoverflow:4328679",
+          "source": "stackoverflow",
+          "score": 0.6743953227996826,
+          "title": "How to configure postgresql so it accepts login+password auth?",
+          "question": "I have a fresh ubuntu 10.10 install with all updates and postgresql 8.4 In order for postgresql to accept login+password connections i have configured it via: sudo su postgres psql ALTER USER postgres WITH PASSWORD 'password'; CREATE DATABASE myapp; \\q exit sudo vi /etc/postgresql/8.4/main/pg_hba.conf change \"local all all indent\" to \"local all all trust\" But, surprisingly, this is not working! The command psql -U postgres password Evaluates with error: psql: FATAL: Ident authentication failed for user \"postgres\" Any hints how i can make the psql -U to work?"
+        }
+      ]
+    },
+    {
+      "query": "Python package import error module not found",
+      "passed": true,
+      "expected": [
+        "python",
+        "import"
+      ],
+      "context_tokens": 1119,
+      "input_tokens": 1261,
+      "documents_used": 5,
+      "results": [
+        {
+          "id": "stackoverflow:2269697",
+          "source": "stackoverflow",
+          "score": 0.758380651473999,
+          "title": "Package module not found in Python 2.5, but found in 2.6",
+          "question": "I have package structure that looks like this: ae util util contains a method mkdir(dir) that, given a path, creates a directory. If the directory exists, no error is thrown; the method fails silently. The directory ae and its parent directory are both on my PYTHONPATH. When I try to use this method in Python 2.6, everything is fine. However, Python 2.5 gives the following error: util.mkdir(SOURCES) AttributeError: 'module' object has no attribute 'mkdir' Why is Python 2.6 able to find this module and its method with no problems, but Python 2.5 cannot?"
+        },
+        {
+          "id": "stackoverflow:2325923",
+          "source": "stackoverflow",
+          "score": 0.7394536137580872,
+          "title": "How to fix \"ImportError: No module named ...\" error in Python?",
+          "question": "What is the correct way to fix this ImportError error? I have the following directory structure: /home/bodacydo /home/bodacydo/work /home/bodacydo/work/project /home/bodacydo/work/project/programs /home/bodacydo/work/project/foo And I am in the directory /home/bodacydo/work/project Now if I type python./programs/my_python_program.py I instantly get ImportError: No module named foo.tasks The./programs/my_python_program.py contains the following line: from foo.tasks import my_function I can't understand why python won't find./foo/tasks.py - it's there. If I do it from the Python shell, then it works: python >>> from foo.tasks import my_function It only doesn't work if I call it via python./programs/my_python_program.py script."
+        },
+        {
+          "id": "stackoverflow:578983",
+          "source": "stackoverflow",
+          "score": 0.7390732765197754,
+          "title": "Python package import error",
+          "question": "I'm trying to package my modules, but I can't seem to get it working. My directory tree is something like the following: snappy/ __init__.py main/ __init__.py main.py config.py...... and the code I'm using is from snappy.main.config import * I'm getting the error: ImportError: No module named snappy.main.config Any ideas what's going wrong? This is using Python 2.5 on Ubuntu 8.10. Thanks in advance for your help."
+        },
+        {
+          "id": "stackoverflow:2040531",
+          "source": "stackoverflow",
+          "score": 0.7323746681213379,
+          "title": "How can I fix ImportError: No module named numpy?",
+          "question": "I am trying to run a python script which has the following statements: import random as RD import pylab as PL import scipy as SP import networkx as NX Where can I download these packages? I have installed these packages and I get the following error when I run my code I am getting the following error when I run the code Traceback (most recent call last): File \"C:\\Documents and Settings\\hplabs\\Desktop\\Dushyant\\networkdemo.py\", line 7, in import pylab as PL File \"C:\\Python26\\lib\\site-packages\\pylab.py\", line 1, in from matplotlib.pylab import * File \"C:\\Python26\\lib\\site-packages\\matplotlib\\__init__.py\", line 129, in from rcsetup import defaultParams, validate_backend, validate_toolbar File \"C:\\Python26\\lib\\site-packages\\matplotlib\\rcsetup.py\", line 19, in from matplotlib.colors import is_color_like File \"C:\\Python26\\lib\\site-packages\\matplotlib\\colors.py\", line 52, in import numpy as np ImportError: No module named numpy"
+        },
+        {
+          "id": "stackoverflow:1860363",
+          "source": "stackoverflow",
+          "score": 0.7307032942771912,
+          "title": "How do I distinguish \"module not found\" from \"module threw exception\" on ImportError?",
+          "question": "In Python, import does_not_exist raises ImportError, and import exists exists.py: import does_not_exist will also raise ImportError. How should I tell the difference in code?"
+        }
+      ]
+    },
+    {
+      "query": "Git authentication fails permission denied",
+      "passed": true,
+      "expected": [
+        "git"
+      ],
+      "context_tokens": 2068,
+      "input_tokens": 2208,
+      "documents_used": 4,
+      "results": [
+        {
+          "id": "stackoverflow:2643502",
+          "source": "stackoverflow",
+          "score": 0.7262963056564331,
+          "title": "Git: How to solve Permission denied (publickey) error when using Git?",
+          "question": "I'm on Mac Snow Leopard and I just installed git. I just tried git clone git@thechaw.com:cakebook.git but that gives me this error: Initialized empty Git repository in `/Users/username/Documents/cakebook/.git/` Permission denied (publickey). fatal: The remote end hung up unexpectedly What am I missing? I've also tried doing ssh-keygen with no passphase but still same error."
+        },
+        {
+          "id": "stackoverflow:3858928",
+          "source": "stackoverflow",
+          "score": 0.7170112729072571,
+          "title": "Git SSH setup Permission denied (publickey)",
+          "question": "I'm using a VWWare image of Ubuntu 8.04 and experiencing problems while setting up git access over SSH I get the following output debug1: Authentications that can continue: publickey debug1: Next authentication method: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Offering public key: debug1: Authentications that can continue: publickey debug1: Trying private key: /home/jars/.ssh/identity debug1: PEM_read_PrivateKey failed debug1: read PEM private key done: type Enter passphrase for key '/home/jars/.ssh/identity': debug1: read PEM private key done: type RSA debug1: Authentications that can continue: publickey debug1: No more authentication methods to try. Permission denied (publickey). I have generated the keys with ssh-keygen -t rsa and renamed them to identity (private) and ida_rsa (public), because initially they wheren't found by ssh. I also created a config file as depicted here... http://help.github.com/troubleshooting-ssh/ Nothing changed. Am I missing something or is there generally something wrong with using SSH in VMWare? Regards"
+        },
+        {
+          "id": "stackoverflow:5479204",
+          "source": "stackoverflow",
+          "score": 0.7142758965492249,
+          "title": "catch 22 with git permissions for private repos",
+          "question": "I'm getting the following when I try to send a dir from my server to a private repos with github.. $:/home/my_site/$ git push origin master\n\nEnter passphrase for key '/home/adamgamb/.ssh/id_rsa': error: unable to create directory for.git/refs/remotes/origin/master error: Cannot lock the ref 'refs/remotes/origin/master'. Everything up-to-date Currently, if I try to use git with out sudo I get this error because the files can't be accessed, however, if I use sudo the git publickey is rejected (it is in the ~/.ssh of the user im executing this as) Can anyone explain how to avoid this problem? $: sudo git push origin master Permission denied (publickey). fatal: The remote end hung up unexpectedly"
+        },
+        {
+          "id": "stackoverflow:3591084",
+          "source": "stackoverflow",
+          "score": 0.7099078893661499,
+          "title": "git clone heroku ssh permission denied",
+          "question": "I just bought a new computer and I am trying to clone my heroku project on it. Here's what I've done so far. I didn't include the trace, but everything was saved in the right place, and the functions ran without errors. >> sudo ssh-keygen >> heroku keys:add >> sudo git clone -o heroku git@heroku.com:myapp.git\n\nInitialized empty Git repository in /Users/macuser/Sites/shwagr/shwagr/.git/ Permission denied (publickey). Then I heard about doing it through ssh bash.. >ssh-agent bash >ssh-add ~/.ssh\n\nPermissions 0777 for '/Users/macuser/.ssh' are too open. It is recommended that your private key files are NOT accessible by others. This private key will be ignored. What? Ok Dad.. >>sudo chmod 700 ~/.ssh >>ssh-agent bash >>ssh-add ~/.ssh Enter passphrase for /Users/macuser/.ssh: Bad passphrase, try again for /Users/macuser/.ssh: Bad passphrase, try again for /Users/macuser/.ssh: Bad passphrase, try again for /Users/macuser/.ssh: Bad passphrase, try again for /Users/macuser/.ssh: Bad passphrase, try again for /Users/macuser/.ssh: Bad passphrase, try again for /Users/macuser/.ssh: Not sure what the password here is, but it sure wasn't me who set this one. If I simply press return/enter, it exits out, but that doesn't give me the impression it worked. And consequentially, it still doesn't allow me to clone the repository. Any ideas? UPDATE I went into my ~/.ssh file and performed ssh-keygen -t rsa and i made a new key called love. Then I heroku keys:add love.pub successfully. Then I went to git clone.. sudo git clone -o heroku git@heroku.com:mysite.git\n\nInitialized empty Git repository in /Users/macuser/Sites/shwagr/shwagr/.git/ Permission denied (publickey). UPDATE 2 I deleted ~/.ssh, and recreated it without sudo. Then I removed all my keys I had created today off of heroku, and restarted the process. Same error. Update 3 >>heroku keys\n\nNo Keys for this computer.\n\n>>sudo heroku keys\n\nNo Keys for this computer\n\n>>heroku keys:add\n\n>>heroku keys\n\nssh-rsa AAAA...J67lw== macuser@Mac-Users-MacBook-Pro.local Compared these keys to my keys: They are identical.:D Permission Denied. Attempt 4 heroku keys:clear rm -rf ~/.ssh mkdir ~/.ssh cd ~/.ssh ssh-keygen -t rsa heroku keys:add cd /Users/macuser/Sites/ sudo git clone -o heroku git@heroku.com:shwagr.git Failed. fatal: The remote end hung up unexpectedly Huge Update Just found out that git repo is actually empty. And it's just a symbolic link ( when you attach a real domain to it it still uses the old one as the real repo ). So when I pulled one of Heroku's default names like smooth-buttery-back-52.git, it pulled and worked, and was actually my repository."
+        },
+        {
+          "id": "stackoverflow:4221631",
+          "source": "stackoverflow",
+          "score": 0.7065259218215942,
+          "title": "Can't push to ssh based git repository",
+          "question": "I'm attempting to push to a repository over SSH instead of the normal https or whatever the default is. This process requires a username and password instead of an ssh key. However this always fails when I try to do this: Owner@DESKTOP /w/programming/wreckcreations-site/dev (dev) $ git push -vvv --all ssh://*name*@*site*/~/html/dev2 Pushing to ssh://*name*@*site*/~/html/dev2 fatal: The remote end hung up unexpectedly Thinking it was an SSH issue, I tried to SSH into my local server Owner@DESKTOP /w/programming/wreckcreations-site/dev (dev) $ \"`echo $GIT_SSH`\" 192.168.2.2 login as: root root@192.168.2.2's password: Last login: Thu Nov 18 19:36:58 2010 from 192.168.2.4 ←]0;root@system:~[root@system ~]# exit logout ←[H←[2J Owner@DESKTOP /w/programming/wreckcreations-site/dev (dev) $ git push -vvv --all ssh://root@192.168.2.2/~/somedir Pushing to ssh://root@192.168.2.2/~/somedir fatal: The remote end hung up unexpectedly Same error message... So I looked in /var/log/secure on the box Nov 18 21:15:06 system sshd[28460]: Accepted password for root from 192.168.2.4 port 2788 ssh2 Nov 18 21:15:06 system sshd[28460]: pam_unix(sshd:session): session opened for user root by (uid=0) Nov 18 21:15:11 system sshd[28460]: pam_unix(sshd:session): session closed for user root Nov 18 21:17:35 system sshd[28618]: Received disconnect from 192.168.2.4: 13: Unable to authenticate The first three lines are from plink, the last one is from git. The last line can be repeated every time I try to use git push. Which makes no sense If I assume that my remote host is getting the same error message, why isn't git submitting my username and just disconnecting? I've never seen this kind of error before, so I'm really confused. It should be noted that this is a Windows XP box using msysgit with both remote servers being Linux. Any suggestions?"
+        }
+      ]
+    },
+    {
+      "query": "Nginx web server configuration",
+      "passed": true,
+      "expected": [
+        "nginx"
+      ],
+      "context_tokens": 1842,
+      "input_tokens": 1983,
+      "documents_used": 4,
+      "results": [
+        {
+          "id": "stackoverflow:3434182",
+          "source": "stackoverflow",
+          "score": 0.7407091856002808,
+          "title": "Apache and ultimate config for nginx to serve all virtual hosts in the right way",
+          "question": "I've just set up nginx to serve static request on one site, but I have lots of sites on my server and I wonder, should I right new nginx server configuration for all of them? What I'm doing now. I have file with all virtual hosts entries for Apache with some-thing like this: NameVirtualHost *:8080 ServerName sky2high.net DocumentRoot /home/mainsiter/data/www/sky2high.net ServerName surdo.asmon.ru DocumentRoot /home/surdo/data/www/surdo.asmon.ru ServerName surdoserver.ru DocumentRoot /home/surdo/data/www/surdoserver.ru I have this in apache's ports.conf: Listen 8080 And so I've set up nginx to work with one site (sky2high.net), created next configure file (/etc/nginx/sites-enabled/sky2high.net): server { listen 80; server_name sky2high.net www.sky2high.net; proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host;\n\naccess_log /var/log/nginx.access_log;\n\nlocation ~* \\.(jpg|jpeg|gif|png|css|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|tar|wav|bmp|rtf|swf|ico|flv|txt|xml|docx|xlsx)$ { root /home/mainsiter/data/www/sky2high.net/; index index.php; access_log off; expires 30d; } location ~ /\\.ht { deny all; } location / { proxy_pass http://127.0.0.1:8080/; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-for $remote_addr; proxy_set_header Host $host; proxy_connect_timeout 60; proxy_send_timeout 90; proxy_read_timeout 90; proxy_redirect off; proxy_set_header Connection close; proxy_pass_header Content-Type; proxy_pass_header Content-Disposition; proxy_pass_header Content-Length; } } And it works fine for this domain, but of course another virtual hosts are broken. So, the question is: is there ultimate config option for nginx, witch can help to handle all request, from all virtual hosts (domains) and serve them in the right way? I mean, option that allows not to write separete configure files for each virtual hosts (with all this doubled stuff like root and index options), but only one for all virtual hosts? PS: should I move question to serverfault? UPDATE: Emm.. I wonder how is it works, but it is. I've made next config files: /etc/nginx/nginx.conf user www-data; worker_processes 2;\n\nerror_log /var/log/nginx/error.log; pid /var/run/nginx.pid;\n\nevents { worker_connections 1024; }\n\nhttp { include /etc/nginx/mime.types; default_type application/octet-stream;\n\naccess_log /var/log/nginx/access.log;\n\nsendfile on; #tcp_nopush on;\n\n#keepalive_timeout 0; keepalive_timeout 65; tcp_nodelay on;\n\ngzip on; gzip_min_length 1000; gzip_proxied any; gzip_disable \"msie6\";\n\ninclude /etc/nginx/conf.d/*.conf; include /etc/nginx/sites-enabled/*; } and /etc/nginx/sites-enabled/default server { listen 80;\n\nlocation / { proxy_pass http://127.0.0.1:8080/; proxy_redirect off; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header Connection close; proxy_pass_header Content-Type; proxy_pass_header Content-Disposition; proxy_pass_header Content-Length; } } I do not understand how is it works, but it is... UPDATE 2: or it doesn't work! I've looked to \"top\" in console and metioned that apache serves not only php request, but for static content either =("
+        },
+        {
+          "id": "stackoverflow:1050921",
+          "source": "stackoverflow",
+          "score": 0.7310212850570679,
+          "title": "How can I reuse server configurations in nginx?",
+          "question": "When configuring nginx with a site that has ssl, the examples I find online basically duplicate the location settings. Most examples only have the default root location so it's not that big of a deal, but when you have a few locations and rewrite rules in place duplicating this configuration gets messy to maintain. I've considered proxying the ssl requests to localhost to get around this, but that's kind of ugly. I've also considered using file includes, but the location configs for this site should be in 1 file since they are related. Any suggestions? Edit: We're using nginx version 0.6.32."
+        },
+        {
+          "id": "stackoverflow:4272668",
+          "source": "stackoverflow",
+          "score": 0.7127923965454102,
+          "title": "What is the equivalent value for apache configuration",
+          "question": "I need to convert following nginx rule to Apache configuration. can anyone help me. location /chat { rewrite /chat(/.+)$ $1 break; proxy_pass http://localhost:8000; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_buffering off; proxy_send_timeout 310; }"
+        },
+        {
+          "id": "stackoverflow:3003169",
+          "source": "stackoverflow",
+          "score": 0.6962988972663879,
+          "title": "HA with nginx and cloud environment",
+          "question": "I have a node in cloud environment which is used now as nginx and mongrels behind it. This is what nginx config looks like: upstream mongrel { server 127.0.0.1:8000; server 127.0.0.1:8001; server 127.0.0.1:8002; } I want to achieve the following: add another node nginx has to know about this new node automatically without stopping him, changing config(manually adding new node's mongrels) and starting it again. How can I make my load balancer(nginx) work in the way so it can be self-aware of nodes in cloud?"
+        },
+        {
+          "id": "stackoverflow:4961329",
+          "source": "stackoverflow",
+          "score": 0.6942877173423767,
+          "title": "nginx, thin, and multiple hosts",
+          "question": "I am trying to set up multiple domains on my server running nginx + thin. For example, I would like www.domain1.com and www.domain2.com to go to different apps with different root paths to their respective apps. If you are familiar with nginx, I have posted my nginx.conf file at the bottom of this post. I was thinking I could just try having multiple server blocks, but then I ran into a problem where the server would default to choosing a random thin port and both domains went to the same app. *The main reason being that all ports for both apps where inside of the thin_cluster block.* I guess my main concern is that there is the thin_cluster which has no association with a particular server. And then there is the server block which has the server_name, etc. However, the thin_cluster can't be nested inside of the server block. Any ideas on how to serve multiple hosts? Here is my /etc/nginx/nginx.conf file user nginx; worker_processes 5;\n\nerror_log /var/log/nginx.error.log; pid /var/run/nginx.pid;\n\nevents { worker_connections 1024; }\n\nhttp { include mime.types; default_type application/octet-stream;\n\nlog_format main '$remote_addr - $remote_user [$time_local] $request ' '\"$status\" $body_bytes_sent \"$http_referer\" ' '\"$http_user_agent\" \"$http_x_forwarded_for\"';\n\naccess_log /var/log/nginx.access.log main;\n\nsendfile on;\n\nkeepalive_timeout 65;\n\nupstream thin_cluster { server 0.0.0.0:3000; server 0.0.0.0:3001; server 0.0.0.0:3002; server 0.0.0.0:3003; server 0.0.0.0:3004; }\n\nserver { listen 80; server_name www.domain1.com;\n\nroot /home/ec2-user/helloCloud/public;\n\nlocation / { proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header Host $http_host; proxy_redirect off;\n\nif (-f $request_filename/index.html) { rewrite (.*) $1/index.html break; } if (-f $request_filename.html) { rewrite (.*) $1.html break; } if (!-f $request_filename) { proxy_pass http://thin_cluster; break; } }\n\nerror_page 500 502 503 504 /50x.html; location = /50x.html { root html; } } }"
+        }
+      ]
+    }
+  ]
+}

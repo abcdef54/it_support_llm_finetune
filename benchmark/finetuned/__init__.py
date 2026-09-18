@@ -1,1 +1,1 @@
-"""Fine-tuned, no-RAG benchmark variants."""
+"""Fine-tuned benchmark variants with optional shared RAG contexts."""

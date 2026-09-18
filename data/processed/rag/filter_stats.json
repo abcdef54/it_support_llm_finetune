@@ -1,0 +1,23 @@
+{
+  "stackoverflow": {
+    "raw": 1051081,
+    "missing_question_or_accepted_answer": 37,
+    "invalid_score": 0,
+    "low_score": 122508,
+    "irrelevant_topic": 715458,
+    "answer_too_short_or_noise": 0,
+    "benchmark_leakage_removed": 0,
+    "duplicates_removed": 14,
+    "eligible_unique": 213064,
+    "not_selected_by_diversity_cap": 145171,
+    "selected": 67893
+  },
+  "techqa": {
+    "raw": 902,
+    "answerable": 602,
+    "excluded_null_or_unanswerable": 300,
+    "benchmark_leakage_removed": 0,
+    "duplicates_removed": 12,
+    "selected": 590
+  }
+}

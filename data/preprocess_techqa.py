@@ -50,7 +50,7 @@ def prepare_rows(source_rows: dict[str, list[dict]]) -> tuple[list[dict], dict]:
             records.append(record)
 
     stats = {
-        "policy": "benchmark_only",
+        "policy": "historical_benchmark_and_rag_knowledge",
         "original_labeled_examples": sum(map(len, source_rows.values())),
         "source_counts": {split: len(rows) for split, rows in source_rows.items()},
         "final_benchmark_examples": len(records),
@@ -86,8 +86,7 @@ def run(project_root: Path) -> dict:
     stats["usage_restrictions"] = [
         "No fine-tuning or weight updates",
         "No hyperparameter or prompt tuning",
-        "No RAG development or indexing",
-        "Use unchanged for all four final experiments",
+        "TechQA is also a RAG knowledge source; historical benchmark results are not held-out RAG evaluations",
     ]
     write_json(output.parent / "preprocessing_report.json", stats)
     return stats
