@@ -23,7 +23,7 @@ INDEX_PATH = "data/vectorstore/chroma"
 COLLECTION_NAME = "it_support"
 CHROMA_DISTANCE_METRIC = "cosine"
 RAG_TOP_K = 3
-RAG_MAX_CONTEXT_TOKENS = 2400
+RAG_MAX_CONTEXT_TOKENS = 1200
 RETRIEVAL_ARTIFACT = "data/processed/rag/general_it_contexts.json"
 CONTEXT_POLICY = "ranked_whole_records_skip_nonfitting_v1"
 RAG_SYSTEM_PROMPT = """You are an IT support assistant. Give a concise, technically useful answer.
@@ -43,4 +43,3 @@ If the retrieved context is not useful, answer the question normally using your 
 knowledge.
 
 If you do not have enough reliable information to answer, say so."""
-

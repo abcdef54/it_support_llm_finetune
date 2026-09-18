@@ -304,9 +304,9 @@ Prepare the shared contexts once, using only retrieval and the Qwen tokenizer:
 .venv/bin/python -m rag.prepare_benchmark --project-root . --device cuda
 ```
 
-This saves top-5 retrieval results and final formatted contexts for all 1,000
+This saves top-3 retrieval results and final formatted contexts for all 1,000
 questions. It does not generate or judge answers. Both RAG models use this
-exact file. Context is capped at 2,400 Qwen tokens and the complete chat at
+exact file. Context is capped at 1,200 Qwen tokens and the complete chat at
 4,096 tokens. Higher-ranked records are considered first; whole records that
 do not fit are skipped. User questions are never truncated: an overlong
 question fails before generation. Sources are labeled and the prompt tells
@@ -335,9 +335,10 @@ The existing `--resume` behavior applies. RAG fingerprints include corpus,
 index/vector configuration, embedding revision, top-k, context budget, prompt,
 benchmark hash, and the shared artifact hash. Changed inputs reject resume.
 Regenerate a stale artifact explicitly using `rag.prepare_benchmark --overwrite`.
-Changing `RAG_TOP_K` (currently 3) makes the saved contexts stale and requires
-that command before either RAG benchmark; runs started with another top-k cannot
-be resumed under the new setting.
+Changing `RAG_TOP_K` (currently 3) or `RAG_MAX_CONTEXT_TOKENS` (currently 1,200)
+makes the saved contexts stale and requires that command before either RAG
+benchmark. Runs started with another top-k or context budget cannot be resumed
+under the new setting.
 Retrieval does not run again during generation or judging. The same untouched
 base judge and metrics evaluate all four variants. Predictions also store
 retrieved/used IDs, source scores, context and token counts; metrics include

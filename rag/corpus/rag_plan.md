@@ -874,7 +874,7 @@ Implement a context budget.
 For example:
 
 ```python
-RAG_MAX_CONTEXT_TOKENS = 2400
+RAG_MAX_CONTEXT_TOKENS = 1200
 ```
 
 or another sensible value after accounting for:
@@ -1449,7 +1449,7 @@ EMBEDDING_MODEL = "BAAI/bge-base-en-v1.5"
 
 RAG_TOP_K = 3
 
-RAG_MAX_CONTEXT_TOKENS = 2400
+RAG_MAX_CONTEXT_TOKENS = 1200
 
 CHROMA_DISTANCE_METRIC = "cosine"
 ```
