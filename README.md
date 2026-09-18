@@ -296,6 +296,21 @@ DEX requires the `dex_v2` adapter. BGE is released before Qwen loads.
 Answers may cite numbered sources; saved retrieval metadata records the actual
 passages supplied, but citations do not prove that a passage caused an answer.
 
+For a simpler DEX-only terminal entry point, run:
+
+```bash
+.venv/bin/python main.py --question "Hey DEX"
+.venv/bin/python main.py --question "Why does SSH deny my key?" --rag --sources
+.venv/bin/python main.py --rag --sources
+```
+
+Without `--question`, enter questions interactively and type `quit` or `exit`
+to leave. `--rag` is opt-in; `--sources` lists retrieved passages, marking which
+were actually supplied to DEX. The pinned base model and embedding model are
+downloaded on first use if absent; the `dex_v2` adapter must already exist at
+`models/qwen3.5-9b-it-support-dex-v2-qlora/`. Each question releases retrieval
+and Qwen resources afterward, so an interactive question loads them again.
+
 ## Controlled RAG benchmarks
 
 Prepare the shared contexts once, using only retrieval and the Qwen tokenizer:
