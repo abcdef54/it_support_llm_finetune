@@ -13,3 +13,7 @@ flash-linear-attention>=0.4.2
 causal-conv1d
 chromadb==1.5.5
 sentence-transformers==5.3.0
+langchain
+langchain-community
+langchain-chroma
+langchain-huggingface

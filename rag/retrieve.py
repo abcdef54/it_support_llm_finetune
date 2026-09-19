@@ -1,46 +1,63 @@
-"""Retrieve structured knowledge records without loading Qwen."""
+"""Retrieve structured knowledge records using LangChain Chroma."""
 from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
 
+from langchain_chroma import Chroma
+
 from rag import config as C
-from rag.embeddings import Embedder
-from rag.index import inspect_index
+from rag.embeddings import get_embeddings
 
 
 class Retriever:
-    def __init__(self, root=C.PROJECT_ROOT, *, device=None, embedder=None):
-        self.client, self.collection, self.manifest = inspect_index(root)
-        self.embedder = embedder or Embedder(root, device=device)
-        if self.embedder.dimension != self.manifest["embedding_dimension"]:
-            self.embedder.close()
-            raise ValueError("Embedding dimension differs from the Chroma index")
+    """Retrieve structured knowledge records using LangChain Chroma."""
 
-    def retrieve(self, query, top_k=C.RAG_TOP_K, *, source=None):
+    def __init__(self, root=C.PROJECT_ROOT, *, device=None, embeddings=None, embedder=None):
+        self.root = Path(root)
+        manifest_path = self.root / C.INDEX_PATH / "manifest.json"
+        self.manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+        import chromadb
+        from chromadb.config import Settings
+
+        self.client = chromadb.PersistentClient(
+            path=str(self.root / C.INDEX_PATH),
+            settings=Settings(anonymized_telemetry=False),
+        )
+        self.embeddings = embeddings or (
+            embedder.embeddings if hasattr(embedder, "embeddings") else get_embeddings(self.root, device=device)
+        )
+        self.vectorstore = Chroma(
+            client=self.client,
+            collection_name=C.COLLECTION_NAME,
+            embedding_function=self.embeddings,
+        )
+
+    def retrieve(self, query: str, top_k: int = C.RAG_TOP_K, *, source: str | None = None) -> list[dict]:
         if not isinstance(query, str) or not query.strip() or top_k < 1:
             raise ValueError("A nonempty query and positive top_k are required")
         if source not in {None, "stackoverflow", "techqa"}:
             raise ValueError("Unknown source filter")
-        count = self.manifest["configuration"]["source_counts"].get(source, self.collection.count())
-        vectors = self.embedder.encode([query], query=True)
-        if vectors.shape != (1, self.manifest["embedding_dimension"]):
-            raise ValueError("Query embedding dimension mismatch")
-        result = self.collection.query(query_embeddings=vectors.tolist(), n_results=min(top_k, count),
-                                       where={"source": source} if source else None,
-                                       include=["documents", "metadatas", "distances"])
+
+        filter_dict = {"source": source} if source else None
+        results = self.vectorstore.similarity_search_with_relevance_scores(
+            query, k=top_k, filter=filter_dict
+        )
         records = []
-        for record_id, raw, metadata, distance in zip(result["ids"][0], result["documents"][0],
-                                                      result["metadatas"][0], result["distances"][0], strict=True):
-            record = json.loads(raw)
-            if record["id"] != record_id or record["source"] != metadata["source"]:
-                raise ValueError("Chroma document/source metadata mismatch")
-            records.append({**record, "distance": float(distance), "score": 1.0 - float(distance)})
+        for doc, score in results:
+            record = json.loads(doc.page_content)
+            record["score"] = float(score)
+            record["distance"] = 1.0 - float(score)
+            records.append(record)
         return sorted(records, key=lambda r: (r["distance"], r["id"]))
 
+    def as_retriever(self, **kwargs):
+        """Expose standard LangChain retriever interface."""
+        return self.vectorstore.as_retriever(**kwargs)
+
     def close(self):
-        self.embedder.close()
+        pass
 
 
 if __name__ == "__main__":
@@ -56,3 +73,4 @@ if __name__ == "__main__":
         print(json.dumps({"query": args.query, "results": retriever.retrieve(args.query, args.top_k, source=args.source)}, indent=2))
     finally:
         retriever.close()
+

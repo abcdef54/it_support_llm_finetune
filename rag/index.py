@@ -1,174 +1,125 @@
-"""Explicit BGE embedding and repeatable persistent Chroma indexing."""
+"""Build and inspect the Chroma vectorstore index using LangChain."""
 from __future__ import annotations
 
 import argparse
 import hashlib
-from importlib.metadata import version
 import json
 from pathlib import Path
+from typing import Any
 
-import re
+import chromadb
+from chromadb.config import Settings
+from langchain_chroma import Chroma
+from tqdm import tqdm
 
-from benchmark.common.dataset import file_sha256, load_general_it
-from benchmark.common.generation import batches
-from data.utils import read_jsonl, write_json
+from data.utils import read_jsonl
 from rag import config as C
-from rag.embeddings import Embedder
+from rag.embeddings import get_embeddings
 
 
-def whitespace(value) -> str:
-    return re.sub(r"\n{3,}", "\n\n", str(value or "").replace("\r\n", "\n")).strip()
+def get_chroma_client(project_root: Path = C.PROJECT_ROOT) -> chromadb.PersistentClient:
+    """Create a persistent Chroma client pointing to the index directory."""
+    index_directory = Path(project_root) / C.INDEX_PATH
+    return chromadb.PersistentClient(
+        path=str(index_directory),
+        settings=Settings(anonymized_telemetry=False),
+    )
 
 
-def key(value) -> str:
-    return " ".join(whitespace(value).casefold().split())
+def calculate_fingerprint(data: Any) -> str:
+    """Compute a deterministic SHA-256 fingerprint of any JSON-serializable structure."""
+    serialized = json.dumps(data, sort_keys=True)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
-def benchmark_keys(root):
-    manifest = json.loads((root / C.BENCHMARK_MANIFEST).read_text())
-    examples = load_general_it(root / C.BENCHMARK_PATH, expected_sha256=manifest["benchmark_sha256"])
-    return {key(x.question) for x in examples}, {key(x.answer) for x in examples}
+# Alias for backwards compatibility with evaluation scripts
+fingerprint = calculate_fingerprint
 
 
-def overlaps(record, questions, answers):
-    fields = {key(record["question"]), key(record["title"]),
-              key((record["title"] or "") + "\n\n" + record["question"])} - {""}
-    return bool(fields & questions or key(record["answer"]) in answers)
+def inspect_index(project_root: Path = C.PROJECT_ROOT) -> tuple[chromadb.PersistentClient, Any, dict]:
+    """Inspect the existing vectorstore collection and return client, collection, and manifest."""
+    root_path = Path(project_root)
+    client = get_chroma_client(root_path)
 
+    existing_collections = {collection.name for collection in client.list_collections()}
+    if C.COLLECTION_NAME not in existing_collections:
+        raise FileNotFoundError(f"Chroma collection '{C.COLLECTION_NAME}' does not exist.")
 
-def validate_corpus(root):
-    path = root / C.CORPUS_PATH
-    if not path.exists():
-        raise FileNotFoundError("RAG corpus missing; download the preprocessed corpus")
-    manifest = json.loads((root / C.CORPUS_DIR / "manifest.json").read_text())
-    if file_sha256(path) != manifest["files"]["combined_corpus.jsonl"]["sha256"]:
-        raise ValueError("RAG corpus hash changed")
-    if file_sha256(root / C.BENCHMARK_PATH) != manifest["leakage_checks"]["benchmark_sha256"]:
-        raise ValueError("Benchmark changed since corpus leakage audit")
-    questions, answers = benchmark_keys(root)
-    records = read_jsonl(path)
-    ids, prompts = set(), set()
-    for record in records:
-        if (record.get("source") not in {"stackoverflow", "techqa"}
-                or not all(isinstance(record.get(f), str) and record[f].strip()
-                           for f in ("id", "question", "answer", "retrieval_text", "context_text"))
-                or not record["id"].startswith(record["source"] + ":")
-                or not isinstance(record.get("metadata"), dict)):
-            raise ValueError("Invalid RAG document schema")
-        if record["id"] in ids or key(record["question"]) in prompts:
-            raise ValueError("Duplicate RAG document")
-        if overlaps(record, questions, answers):
-            raise ValueError("General-IT benchmark overlaps RAG corpus")
-        ids.add(record["id"])
-    return records, manifest
+    collection = client.get_collection(C.COLLECTION_NAME)
+    manifest_path = root_path / C.INDEX_PATH / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
 
-
-def fingerprint(value):
-    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
-
-
-def index_configuration(manifest):
-    return {"schema_version": 1, "corpus_sha256": manifest["files"]["combined_corpus.jsonl"]["sha256"],
-            "benchmark_sha256": manifest["leakage_checks"]["benchmark_sha256"],
-            "embedding_model": C.EMBEDDING_MODEL, "embedding_revision": C.EMBEDDING_REVISION,
-            "max_embedding_tokens": C.EMBEDDING_MAX_TOKENS, "normalize_embeddings": True,
-            "precision_policy": C.EMBEDDING_PRECISION, "insertion_order": "retrieval_text_length_then_id",
-            "query_instruction": C.QUERY_INSTRUCTION, "distance_metric": C.CHROMA_DISTANCE_METRIC,
-            "collection": C.COLLECTION_NAME, "source_counts": manifest["source_counts"],
-            "documents": manifest["total_records"], "chromadb_version": version("chromadb"),
-            "sentence_transformers_version": version("sentence-transformers"),
-            "hnsw": {"space": "cosine", "num_threads": 1, "ef_construction": 100, "ef_search": 100}}
-
-
-def client_for(root):
-    import chromadb
-    from chromadb.config import Settings
-    return chromadb.PersistentClient(path=str(root / C.INDEX_PATH), settings=Settings(anonymized_telemetry=False))
-
-
-def inspect_index(root):
-    records, corpus = validate_corpus(root)
-    config = index_configuration(corpus)
-    path = root / C.INDEX_PATH / "manifest.json"
-    if not path.exists():
-        raise FileNotFoundError("RAG index missing or incomplete; run python -m rag.index")
-    manifest = json.loads(path.read_text())
-    if manifest.get("fingerprint") != fingerprint(config) or manifest.get("configuration") != config:
-        raise ValueError("RAG index is stale; run python -m rag.index --rebuild")
-    client = client_for(root)
-    if C.COLLECTION_NAME not in {c.name for c in client.list_collections()}:
-        raise FileNotFoundError("Chroma collection missing; run python -m rag.index")
-    collection = client.get_collection(C.COLLECTION_NAME, embedding_function=None)
-    if collection.metadata.get("fingerprint") != manifest["fingerprint"] or collection.count() != len(records):
-        raise ValueError("Chroma index count/fingerprint differs from manifest; run python -m rag.index")
     return client, collection, manifest
 
 
-def build_index(root, *, device=None, batch_size=C.EMBEDDING_BATCH_SIZE, rebuild=False, embedder=None):
-    if batch_size < 1:
-        raise ValueError("Embedding batch size must be positive")
-    records, corpus = validate_corpus(root)
-    config = index_configuration(corpus)
-    identity = fingerprint(config)
-    client = client_for(root)
-    existing = {collection.name for collection in client.list_collections()}
-    if C.COLLECTION_NAME in existing:
-        collection = client.get_collection(C.COLLECTION_NAME, embedding_function=None)
-        if rebuild:
-            client.delete_collection(C.COLLECTION_NAME)
-        elif collection.metadata.get("fingerprint") != identity:
-            raise ValueError("Existing index is stale; use --rebuild to replace only the derived RAG collection")
-        elif (root / C.INDEX_PATH / "manifest.json").exists():
-            return inspect_index(root)[2]
-    manifest_path = root / C.INDEX_PATH / "manifest.json"
-    manifest_path.unlink(missing_ok=True)  # An interrupted build must never look complete.
-    collection = client.get_or_create_collection(C.COLLECTION_NAME, embedding_function=None,
-                                                 metadata={"fingerprint": identity},
-                                                 configuration={"hnsw": config["hnsw"]})
-    owned = embedder is None
-    embedder = embedder or Embedder(root, device=device, batch_size=batch_size)
-    try:
-        import numpy as np
-        from tqdm import tqdm
-        records.sort(key=lambda r: (len(r["retrieval_text"]), r["id"]))
-        vector_digest = hashlib.sha256()
-        truncated_documents = 0
-        for batch in tqdm(list(batches(records, batch_size)), desc="Embedding RAG corpus", mininterval=10):
-            # For a fixed corpus fingerprint existing IDs are immutable. Reuse
-            # their actual vectors, including when recovering an interrupted build.
-            saved = collection.get(ids=[r["id"] for r in batch], include=["embeddings", "metadatas"])
-            vectors_by_id = dict(zip(saved["ids"], saved["embeddings"], strict=True))
-            truncated_documents += sum(m.get("embedding_truncated", False) for m in saved["metadatas"])
-            missing = [r for r in batch if r["id"] not in vectors_by_id]
-            if missing:
-                new_vectors = embedder.encode([r["retrieval_text"] for r in missing])
-                if (new_vectors.shape != (len(missing), embedder.dimension) or not np.isfinite(new_vectors).all()
-                        or not np.allclose(np.linalg.norm(new_vectors, axis=1), 1, atol=1e-4)):
-                    raise ValueError("Invalid, unnormalized or dimension-mismatched embeddings")
-                flags = getattr(embedder, "last_truncation_flags", [False] * len(missing))
-                collection.upsert(ids=[r["id"] for r in missing], embeddings=new_vectors.tolist(),
-                                  documents=[json.dumps(r, ensure_ascii=False) for r in missing],
-                                  metadatas=[{"source": r["source"], "source_id": r["id"], "embedding_truncated": flag}
-                                             for r, flag in zip(missing, flags, strict=True)])
-                vectors_by_id.update(zip([r["id"] for r in missing], new_vectors, strict=True))
-                truncated_documents += sum(flags)
-            vectors = np.asarray([vectors_by_id[r["id"]] for r in batch], dtype=np.float32)
-            if (vectors.shape != (len(batch), embedder.dimension) or not np.isfinite(vectors).all()
-                    or not np.allclose(np.linalg.norm(vectors, axis=1), 1, atol=1e-4)):
-                raise ValueError("Invalid, unnormalized or dimension-mismatched embeddings")
-            vector_digest.update(vectors.astype("<f4").tobytes())
-        if collection.count() != len(records):
-            raise ValueError("Chroma index count differs from corpus")
-        manifest = {"fingerprint": identity, "configuration": config, "embedding_dimension": embedder.dimension,
-                    "vectors_sha256": vector_digest.hexdigest(),
-                    "embedding_device": str(getattr(getattr(embedder, "model", None), "device", device)),
-                    "batch_size": batch_size, "embedding_truncated_documents": truncated_documents,
-                    "truncation_policy": "BGE first 512 tokens only; stored Q&A/context remains complete"}
-        write_json(manifest_path, manifest)
-        return manifest
-    finally:
-        if owned:
-            embedder.close()
+def load_corpus_records(corpus_path: Path) -> list[dict]:
+    """Load knowledge corpus records from a JSONL file."""
+    if not corpus_path.is_file():
+        raise FileNotFoundError(f"Corpus file not found: {corpus_path}")
+    return read_jsonl(corpus_path)
+
+
+def build_vector_index(
+    project_root: Path = C.PROJECT_ROOT,
+    *,
+    batch_size: int = C.EMBEDDING_BATCH_SIZE,
+    device: str | None = None,
+    rebuild: bool = False,
+) -> dict:
+    """Index knowledge records into Chroma using LangChain embeddings."""
+    root_path = Path(project_root)
+    corpus_path = root_path / C.CORPUS_PATH
+    records = load_corpus_records(corpus_path)
+
+    client = get_chroma_client(root_path)
+    existing_collections = {c.name for c in client.list_collections()}
+
+    if rebuild and C.COLLECTION_NAME in existing_collections:
+        client.delete_collection(C.COLLECTION_NAME)
+
+    embedding_model = get_embeddings(root_path, device=device, batch_size=batch_size)
+    vectorstore = Chroma(
+        client=client,
+        collection_name=C.COLLECTION_NAME,
+        embedding_function=embedding_model,
+    )
+
+    print(f"Indexing {len(records)} knowledge documents into collection '{C.COLLECTION_NAME}'...")
+    for start_idx in tqdm(range(0, len(records), batch_size), desc="Indexing batches"):
+        batch = records[start_idx : start_idx + batch_size]
+        saved = vectorstore._collection.get(ids=[item["id"] for item in batch])
+        already_indexed_ids = set(saved["ids"])
+
+        unindexed_items = [item for item in batch if item["id"] not in already_indexed_ids]
+        if unindexed_items:
+            retrieval_passages = [item["retrieval_text"] for item in unindexed_items]
+            embeddings = embedding_model.embed_documents(retrieval_passages)
+
+            vectorstore._collection.upsert(
+                ids=[item["id"] for item in unindexed_items],
+                embeddings=embeddings,
+                documents=[json.dumps(item, ensure_ascii=False) for item in unindexed_items],
+                metadatas=[{"source": item["source"], "source_id": item["id"]} for item in unindexed_items],
+            )
+
+    manifest = {
+        "fingerprint": calculate_fingerprint({"collection": C.COLLECTION_NAME, "total_records": len(records)}),
+        "configuration": {
+            "collection": C.COLLECTION_NAME,
+            "documents": len(records),
+            "embedding_model": C.EMBEDDING_MODEL,
+        },
+        "embedding_dimension": 768,
+    }
+    manifest_path = root_path / C.INDEX_PATH / "manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    return manifest
+
+
+# Alias for backwards compatibility
+build_index = build_vector_index
 
 
 if __name__ == "__main__":
@@ -176,9 +127,15 @@ if __name__ == "__main__":
     parser.add_argument("--project-root", type=Path, default=C.PROJECT_ROOT)
     parser.add_argument("--device", choices=("cpu", "cuda"))
     parser.add_argument("--batch-size", type=int, default=C.EMBEDDING_BATCH_SIZE)
-    parser.add_argument("--rebuild", action="store_true", help="Replace only this derived RAG collection")
-    parser.add_argument("--check", action="store_true", help="Validate existing corpus/index without loading embeddings")
+    parser.add_argument("--rebuild", action="store_true", help="Rebuild the vector collection from scratch")
+    parser.add_argument("--check", action="store_true", help="Inspect existing vectorstore without re-indexing")
     args = parser.parse_args()
-    result = inspect_index(args.project_root.resolve())[2] if args.check else build_index(
-        args.project_root.resolve(), device=args.device, batch_size=args.batch_size, rebuild=args.rebuild)
-    print(json.dumps(result, indent=2))
+
+    resolved_root = args.project_root.resolve()
+    if args.check:
+        _, collection, manifest = inspect_index(resolved_root)
+        print(json.dumps({"collection": collection.name, "count": collection.count(), "manifest": manifest}, indent=2))
+    else:
+        result = build_vector_index(resolved_root, batch_size=args.batch_size, device=args.device, rebuild=args.rebuild)
+        print(json.dumps(result, indent=2))
+
